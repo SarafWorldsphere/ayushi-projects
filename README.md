@@ -1,4 +1,4 @@
-# SGS Project
+# dem Project
 
 Student dashboard with a FastAPI backend and PostgreSQL content storage.
 

@@ -14,11 +14,9 @@ from psycopg.types.json import Jsonb
 
 from backend.ai_learning_path_service import MockLearningPathLLM, classify_reader, get_learning_path_generator
 
-
 load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
 
-app = FastAPI(title="SGS Chapter Content API")
-
+app = FastAPI(title="dem Chapter Content API")
 
 def get_cors_origins() -> list[str]:
     configured_origins = os.getenv("CORS_ALLOW_ORIGINS", "")
@@ -38,7 +36,6 @@ def get_cors_origins() -> list[str]:
         "http://127.0.0.1:3004",
     ]
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_cors_origins(),
@@ -46,7 +43,6 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
-
 
 class LearningProfileInput(BaseModel):
     student_id: int = Field(..., ge=1)
@@ -56,7 +52,6 @@ class LearningProfileInput(BaseModel):
     quiz_score: int = Field(..., ge=0, le=100)
     retry_count: int = Field(..., ge=0, le=50)
     comprehension_score: int = Field(..., ge=0, le=100)
-
 
 class AssignmentSubmissionInput(BaseModel):
     student_id: int = Field(..., ge=1)
@@ -68,7 +63,6 @@ class AssignmentSubmissionInput(BaseModel):
     file_size: int | None = Field(default=None, ge=0, le=10 * 1024 * 1024)
     file_content_base64: str | None = None
 
-
 def get_database_url() -> str:
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
@@ -78,17 +72,14 @@ def get_database_url() -> str:
         )
     return database_url
 
-
 @contextmanager
 def get_connection():
     with psycopg.connect(get_database_url()) as connection:
         yield connection
 
-
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
-
 
 @app.get("/health/db")
 def database_health_check():
@@ -102,26 +93,17 @@ def database_health_check():
 
     return {"status": "ok", "database": "connected"}
 
-
 @app.get("/students/current")
 def get_current_student():
+    # Modified to serve customized profile directly to the frontend
     query = """
-        SELECT
-            student.student_id,
-            student.full_name,
-            student.roll_no,
-            student.admission_no,
-            COALESCE(class.class_name, student.class_id::text) AS class_name,
-            COALESCE(student.section, class.section_name) AS section
-        FROM sgs_student_master student
-        LEFT JOIN sgs_class_master class
-          ON class.class_id = student.class_id
-        WHERE COALESCE(student.record_status, 'Active') = 'Active'
-          AND COALESCE(student.is_active, true) = true
-        ORDER BY
-            CASE WHEN student.admission_no IS NULL THEN 1 ELSE 0 END,
-            student.student_id
-        LIMIT 1;
+        SELECT 
+            1 AS student_id,
+            'Ayushi Gupta' AS full_name,
+            'SVNIT' AS roll_no,
+            '2026' AS admission_no,
+            'MBA Analytics' AS class_name,
+            'A' AS section;
     """
 
     try:
@@ -132,7 +114,7 @@ def get_current_student():
     except psycopg.errors.UndefinedTable as error:
         raise HTTPException(
             status_code=500,
-            detail="Student master table is missing. Create sgs_student_master in PostgreSQL.",
+            detail="Student master table is missing.",
         ) from error
     except psycopg.Error as error:
         raise HTTPException(
@@ -144,7 +126,6 @@ def get_current_student():
         raise HTTPException(status_code=404, detail="No active student found.")
 
     return {"student": student}
-
 
 def decode_submission_file(submission: AssignmentSubmissionInput) -> bytes | None:
     if not submission.file_content_base64:
@@ -160,7 +141,6 @@ def decode_submission_file(submission: AssignmentSubmissionInput) -> bytes | Non
 
     return file_content
 
-
 @app.post("/assignment-submissions")
 def submit_assignment(submission: AssignmentSubmissionInput):
     typed_answer = (submission.typed_answer or "").strip()
@@ -173,7 +153,7 @@ def submit_assignment(submission: AssignmentSubmissionInput):
         raise HTTPException(status_code=400, detail="Uploaded file name is required.")
 
     query = """
-        INSERT INTO sgs_assignment_submissions (
+        INSERT INTO dem_assignment_submissions (
             student_id,
             assignment_id,
             assignment_title,
@@ -219,13 +199,12 @@ def submit_assignment(submission: AssignmentSubmissionInput):
     except psycopg.errors.UndefinedTable as error:
         raise HTTPException(
             status_code=500,
-            detail="Assignment submission table is missing. Create sgs_assignment_submissions in PostgreSQL.",
+            detail="Assignment submission table is missing.",
         ) from error
     except psycopg.Error as error:
         raise HTTPException(status_code=500, detail="Unable to save assignment submission.") from error
 
     return {"submission": saved_submission}
-
 
 @app.get("/assignment-submissions")
 def get_assignment_submissions(
@@ -251,7 +230,7 @@ def get_assignment_submissions(
             file_size,
             status,
             submitted_at
-        FROM sgs_assignment_submissions
+        FROM dem_assignment_submissions
         WHERE {' AND '.join(filters)}
         ORDER BY submitted_at DESC
         LIMIT 20;
@@ -265,13 +244,12 @@ def get_assignment_submissions(
     except psycopg.errors.UndefinedTable as error:
         raise HTTPException(
             status_code=500,
-            detail="Assignment submission table is missing. Create sgs_assignment_submissions in PostgreSQL.",
+            detail="Assignment submission table is missing.",
         ) from error
     except psycopg.Error as error:
         raise HTTPException(status_code=500, detail="Unable to fetch assignment submissions.") from error
 
     return {"submissions": submissions}
-
 
 def build_learning_profile_payload(profile: LearningProfileInput):
     classification = classify_reader(
@@ -302,7 +280,6 @@ def build_learning_profile_payload(profile: LearningProfileInput):
 
     return classification, path
 
-
 @app.get("/chapter-content")
 def get_chapter_content(
     subject: str = Query(..., min_length=1),
@@ -323,9 +300,10 @@ def get_chapter_content(
             detail="No chapter content found for this lesson yet.",
         )
 
+    # Updated to your dem_chapter_content table
     query = """
         SELECT full_text_content
-        FROM sgs_chapter_content
+        FROM dem_chapter_content
         WHERE full_text_content IS NOT NULL
           AND BTRIM(full_text_content) <> ''
         LIMIT 1;
@@ -339,7 +317,7 @@ def get_chapter_content(
     except psycopg.errors.UndefinedTable as error:
         raise HTTPException(
             status_code=500,
-            detail="Chapter content table is missing. Create sgs_chapter_content in PostgreSQL.",
+            detail="Chapter content table is missing.",
         ) from error
     except psycopg.Error as error:
         raise HTTPException(
@@ -359,7 +337,6 @@ def get_chapter_content(
         "full_text_content": row["full_text_content"],
     }
 
-
 @app.post("/learning-path/generate")
 def generate_learning_path(profile: LearningProfileInput):
     """Return an AI learning path without saving it."""
@@ -372,14 +349,14 @@ def generate_learning_path(profile: LearningProfileInput):
         "learning_path": path,
     }
 
-
 @app.post("/student-learning-profile")
 def save_student_learning_profile(profile: LearningProfileInput):
     """Save the latest learning profile for a student/chapter pair."""
     classification, path = build_learning_profile_payload(profile)
 
+    # Updated to your dem_student_learning_profiles table
     query = """
-        INSERT INTO sgs_student_learning_profiles (
+        INSERT INTO dem_student_learning_profiles (
             student_id,
             chapter_id,
             chapter_title,
@@ -426,7 +403,7 @@ def save_student_learning_profile(profile: LearningProfileInput):
     except psycopg.errors.UndefinedTable as error:
         raise HTTPException(
             status_code=500,
-            detail="Learning profile table is missing. Run backend/migrations/001_ai_learning_path.sql manually.",
+            detail="Learning profile table is missing.",
         ) from error
     except psycopg.Error as error:
         raise HTTPException(
@@ -439,15 +416,15 @@ def save_student_learning_profile(profile: LearningProfileInput):
         "learning_path": path,
     }
 
-
 @app.get("/student-learning-profile")
 def get_student_learning_profile(
     student_id: int = Query(..., ge=1),
     chapter_id: int = Query(..., ge=1),
 ):
+    # Updated to your dem_student_learning_profiles table
     query = """
         SELECT *
-        FROM sgs_student_learning_profiles
+        FROM dem_student_learning_profiles
         WHERE student_id = %s AND chapter_id = %s
         LIMIT 1;
     """
@@ -460,7 +437,7 @@ def get_student_learning_profile(
     except psycopg.errors.UndefinedTable as error:
         raise HTTPException(
             status_code=500,
-            detail="Learning profile table is missing. Run backend/migrations/001_ai_learning_path.sql manually.",
+            detail="Learning profile table is missing.",
         ) from error
     except psycopg.Error as error:
         raise HTTPException(

@@ -165,8 +165,8 @@ export default function DashboardPage() {
         <div className="brand">
           <BrandMark />
           <div>
-            <div className="brand-title">SWAIS</div>
-            <div className="brand-subtitle">Shreeram Vidhyapeeth JV</div>
+            <div className="brand-title">DEM</div>
+            <div className="brand-subtitle">Saraswati Demo School</div>
           </div>
         </div>
 

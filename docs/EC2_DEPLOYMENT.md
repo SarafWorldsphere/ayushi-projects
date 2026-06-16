@@ -1,4 +1,4 @@
-# SGS EC2 Deployment
+# dem EC2 Deployment
 
 This guide deploys the Next.js frontend, FastAPI backend, Nginx reverse proxy, and AWS RDS PostgreSQL database.
 
@@ -34,7 +34,7 @@ sudo apt install -y nodejs
 
 ```bash
 cd /home/ubuntu
-git clone https://github.com/Swais-AI/swathi.git
+git clone https://github.com/DEM-AI/swathi.git
 cd /home/ubuntu/swathi
 git checkout swati-branch
 git pull origin swati-branch
@@ -130,28 +130,28 @@ When `NEXT_PUBLIC_API_BASE_URL` changes, run `npm run build` again because this 
 
 ```bash
 cd /home/ubuntu/swathi
-sudo cp deploy/sgs-backend.service /etc/systemd/system/sgs-backend.service
-sudo cp deploy/sgs-frontend.service /etc/systemd/system/sgs-frontend.service
+sudo cp deploy/dem-backend.service /etc/systemd/system/dem-backend.service
+sudo cp deploy/dem-frontend.service /etc/systemd/system/dem-frontend.service
 sudo systemctl daemon-reload
-sudo systemctl enable sgs-backend sgs-frontend
-sudo systemctl restart sgs-backend sgs-frontend
+sudo systemctl enable dem-backend dem-frontend
+sudo systemctl restart dem-backend dem-frontend
 ```
 
 Check logs:
 
 ```bash
-sudo systemctl status sgs-backend
-sudo systemctl status sgs-frontend
-journalctl -u sgs-backend -f
-journalctl -u sgs-frontend -f
+sudo systemctl status dem-backend
+sudo systemctl status dem-frontend
+journalctl -u dem-backend -f
+journalctl -u dem-frontend -f
 ```
 
 ## 8. Configure Nginx
 
 ```bash
 cd /home/ubuntu/swathi
-sudo cp deploy/nginx-sgs.conf /etc/nginx/sites-available/sgs
-sudo ln -sf /etc/nginx/sites-available/sgs /etc/nginx/sites-enabled/sgs
+sudo cp deploy/nginx-dem.conf /etc/nginx/sites-available/dem
+sudo ln -sf /etc/nginx/sites-available/dem /etc/nginx/sites-enabled/dem
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl reload nginx
@@ -188,6 +188,6 @@ npm ci
 npm run build
 source backend/venv/bin/activate
 pip install -r backend/requirements.txt
-sudo systemctl restart sgs-backend sgs-frontend
+sudo systemctl restart dem-backend dem-frontend
 sudo systemctl reload nginx
 ```
