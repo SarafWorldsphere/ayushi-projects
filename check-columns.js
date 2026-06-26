@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 const pool = new Pool({
   host: 'swais-db-hyd.cri2kcc26kxg.ap-south-2.rds.amazonaws.com',
   port: 5432,
-  database: 'sgs_prod',
+  database: 'dem_prod',
   user: 'swais_app_user',
   password: 'Swaisuser007',
   ssl: { rejectUnauthorized: false }
@@ -14,11 +14,11 @@ async function checkColumns() {
     const result = await pool.query(`
       SELECT column_name, data_type 
       FROM information_schema.columns 
-      WHERE table_name = 'sgs_student_master'
+      WHERE table_name = 'dem_student_master'
       ORDER BY ordinal_position
     `);
     
-    console.log('Columns in sgs_student_master:');
+    console.log('Columns in dem_student_master:');
     result.rows.forEach(row => {
       console.log('  - ' + row.column_name + ' (' + row.data_type + ')');
     });

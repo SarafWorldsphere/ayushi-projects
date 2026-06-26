@@ -33,7 +33,7 @@ export async function GET(request) {
         CASE WHEN is_class_teacher = true THEN 'Y' ELSE '' END as isClassTeacher,
         subjects as subjects,
         CASE WHEN is_active = true THEN 'active' ELSE 'inactive' END as status
-      FROM sgs_teacher_master
+      FROM dem_teacher_master
       ORDER BY teacher_id DESC
       LIMIT 100
     `;
@@ -59,7 +59,7 @@ export async function POST(request) {
     const subjectsArray = subjects ? subjects.split(',').map(s => s.trim()) : [];
     
     const result = await sql`
-      INSERT INTO sgs_teacher_master (
+      INSERT INTO dem_teacher_master (
         full_name,
         subject_name,
         qualification,

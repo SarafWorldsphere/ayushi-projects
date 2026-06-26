@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check localStorage for saved user on page load
-    const savedUser = localStorage.getItem('sgs_user');
+    const savedUser = localStorage.getItem('dem_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
     }
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (foundUser) {
       const { password, ...userWithoutPassword } = foundUser;
       setUser(userWithoutPassword);
-      localStorage.setItem('sgs_user', JSON.stringify(userWithoutPassword));
+      localStorage.setItem('dem_user', JSON.stringify(userWithoutPassword));
       return true;
     }
     return false;
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('sgs_user');
+    localStorage.removeItem('dem_user');
   };
 
   return (

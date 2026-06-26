@@ -31,7 +31,7 @@ export async function GET(request, { params }) {
         guardian_name as guardianName,
         guardian_phone as guardianPhone,
         CASE WHEN is_active = true THEN 'active' ELSE 'inactive' END as status
-      FROM sgs_student_master
+      FROM dem_student_master
       WHERE student_id = ${id}
     `;
     
@@ -60,7 +60,7 @@ export async function PUT(request, { params }) {
     const validParentEmail = validateEmail(parentEmail);
     
     const result = await sql`
-      UPDATE sgs_student_master 
+      UPDATE dem_student_master 
       SET 
         admission_no = ${admissionNo || null},
         full_name = ${name},
@@ -94,7 +94,7 @@ export async function PATCH(request, { params }) {
     const isActive = status === 'active';
     
     const result = await sql`
-      UPDATE sgs_student_master 
+      UPDATE dem_student_master 
       SET is_active = ${isActive}
       WHERE student_id = ${id}
       RETURNING student_id as id
@@ -111,7 +111,7 @@ export async function DELETE(request, { params }) {
     const { id } = await params;
     
     await sql`
-      UPDATE sgs_student_master 
+      UPDATE dem_student_master 
       SET is_active = false,
           record_status = 'D'
       WHERE student_id = ${id}

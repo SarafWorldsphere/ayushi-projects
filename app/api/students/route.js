@@ -35,7 +35,7 @@ export async function GET(request) {
         guardian_name as guardianName,
         guardian_phone as guardianPhone,
         CASE WHEN is_active = true THEN 'active' ELSE 'inactive' END as status
-      FROM sgs_student_master
+      FROM dem_student_master
       WHERE record_status = 'Active' OR record_status IS NULL
       ORDER BY student_id DESC
       LIMIT 100
@@ -63,7 +63,7 @@ export async function POST(request) {
     const validParentEmail = validateEmail(parentEmail);
     
     const result = await sql`
-      INSERT INTO sgs_student_master (
+      INSERT INTO dem_student_master (
         admission_no,
         full_name,
         class,

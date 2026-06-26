@@ -30,7 +30,7 @@ export async function GET(request, { params }) {
         CASE WHEN is_class_teacher = true THEN 'Y' ELSE '' END as isClassTeacher,
         subjects as subjects,
         CASE WHEN is_active = true THEN 'active' ELSE 'inactive' END as status
-      FROM sgs_teacher_master
+      FROM dem_teacher_master
       WHERE teacher_id = ${id}
     `;
     
@@ -59,7 +59,7 @@ export async function PUT(request, { params }) {
     const subjectsArray = subjects ? subjects.split(',').map(s => s.trim()) : [];
     
     const result = await sql`
-      UPDATE sgs_teacher_master 
+      UPDATE dem_teacher_master 
       SET 
         full_name = ${name},
         subject_name = ${subject},
@@ -92,7 +92,7 @@ export async function PATCH(request, { params }) {
     const isActive = status === 'active';
     
     const result = await sql`
-      UPDATE sgs_teacher_master 
+      UPDATE dem_teacher_master 
       SET is_active = ${isActive}
       WHERE teacher_id = ${id}
       RETURNING teacher_id as id
@@ -109,7 +109,7 @@ export async function DELETE(request, { params }) {
     const { id } = await params;
     
     await sql`
-      UPDATE sgs_teacher_master 
+      UPDATE dem_teacher_master 
       SET is_active = false
       WHERE teacher_id = ${id}
     `;

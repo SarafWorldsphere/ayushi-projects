@@ -42,7 +42,7 @@ export default function StudentsPage() {
       {/* Welcome Section - Only ONE welcome */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">Welcome, Priya! 🎉</h1>
-        <p className="text-white/50 mt-1">Here's what's happening with SGS School today</p>
+        <p className="text-white/50 mt-1">Here's what's happening with DEM School today</p>
       </div>
 
       {/* Student Management Header */}

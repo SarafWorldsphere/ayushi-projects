@@ -46,11 +46,9 @@ export default function AdminLayout({
                   animate={{ opacity: 1 }}
                   className="flex items-center gap-3"
                 >
-                  <div className="p-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl">
-                    <GraduationCap className="w-6 h-6 text-white" />
-                  </div>
+                  <img src="/ai-logo.jpeg" alt="AI Logo" className="w-12 h-12 object-cover rounded-xl" />
                   <div>
-                    <h1 className="text-white font-bold text-xl">SGS School</h1>
+                    <h1 className="text-white font-bold text-xl">DEM School</h1>
                     <p className="text-white/40 text-xs">Admin Portal</p>
                   </div>
                 </motion.div>
@@ -94,7 +92,7 @@ export default function AdminLayout({
                 className="p-4 bg-white/5 rounded-xl border border-white/10"
               >
                 <p className="text-white/30 text-xs text-center">
-                  © 2026 SGS School<br />
+                  © 2026 DEM School<br />
                   Management System
                 </p>
               </motion.div>

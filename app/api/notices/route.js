@@ -18,7 +18,7 @@ export async function GET(request) {
         notice_date as noticeDate,
         created_datetime as createdAt,
         CASE WHEN record_status = 'Active' THEN 'active' ELSE 'inactive' END as status
-      FROM sgs_notice_board
+      FROM dem_notice_board
       WHERE record_status = 'Active' OR record_status IS NULL
       ORDER BY notice_id DESC
       LIMIT 100
@@ -40,7 +40,7 @@ export async function POST(request) {
     const currentDate = noticeDate || new Date().toISOString().split('T')[0];
     
     const result = await sql`
-      INSERT INTO sgs_notice_board (
+      INSERT INTO dem_notice_board (
         notice_title,
         notice_text,
         applicable_class,
