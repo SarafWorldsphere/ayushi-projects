@@ -3,11 +3,12 @@ import postgres from 'postgres';
 
 export const dynamic = 'force-dynamic';
 
+// Connect to the database using the URL from your .env file
 const sql = postgres(process.env.DATABASE_URL, { 
   ssl: 'require'
 });
 
-// Email validation - must end with @gmail.com
+// Email validation helper
 const validateEmail = (email) => {
   if (!email || email.trim() === '') return null;
   const trimmedEmail = email.trim().toLowerCase();
@@ -17,6 +18,7 @@ const validateEmail = (email) => {
   return null;
 };
 
+// GET Route: Fetch students for the dashboard table
 export async function GET(request) {
   try {
     const students = await sql`
@@ -49,6 +51,7 @@ export async function GET(request) {
   }
 }
 
+// POST Route: Add a new student from the dashboard
 export async function POST(request) {
   try {
     const body = await request.json();
