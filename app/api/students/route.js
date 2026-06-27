@@ -26,17 +26,17 @@ export async function GET(request) {
         student_id as id,
         admission_no as admissionNo,
         full_name as name,
-        class as class,
+        class_id as class,           -- Fixed column name
         section as section,
         roll_no as rollNo,
-        parent1_name as parentName,
-        parent1_phone as parentPhone,
-        parent1_email as parentEmail,
-        student_phone as contact,
-        student_email as email,
-        guardian_name as guardianName,
-        guardian_phone as guardianPhone,
-        CASE WHEN is_active = true THEN 'active' ELSE 'inactive' END as status
+        parent_name as parentName,   -- Fixed column name
+        mobile_no as parentPhone,    -- Fixed column name
+        email_id as parentEmail,     -- Fixed column name
+        mobile_no as contact,        -- Mapped to the only phone column available
+        email_id as email,           -- Mapped to the only email column available
+        NULL as guardianName,        -- Column does not exist in DB
+        NULL as guardianPhone,       -- Column does not exist in DB
+        CASE WHEN record_status = 'Active' THEN 'active' ELSE 'inactive' END as status
       FROM dem_student_master
       WHERE record_status = 'Active' OR record_status IS NULL
       ORDER BY student_id DESC
@@ -58,30 +58,28 @@ export async function POST(request) {
     const { 
       admissionNo, name, class: className, section, rollNo,
       parentName, parentPhone, parentEmail,
-      contact, email, guardianName, guardianPhone, status
+      contact, email, status
     } = body;
     
     const isActive = status === 'active';
-    const validEmail = validateEmail(email);
-    const validParentEmail = validateEmail(parentEmail);
+    
+    // Since the database only has one email and phone column, we prioritize the student's, 
+    // and fall back to the parent's if the student's is missing.
+    const finalEmail = validateEmail(email) || validateEmail(parentEmail);
+    const finalPhone = contact || parentPhone || null;
     
     const result = await sql`
       INSERT INTO dem_student_master (
         admission_no,
         full_name,
-        class,
+        class_id,        -- Fixed column name
         section,
         roll_no,
-        parent1_name,
-        parent1_phone,
-        parent1_email,
-        student_phone,
-        student_email,
-        guardian_name,
-        guardian_phone,
-        is_active,
+        parent_name,     -- Fixed column name
+        mobile_no,       -- Fixed column name
+        email_id,        -- Fixed column name
         created_datetime,
-        record_status
+        record_status    -- Database uses record_status instead of is_active
       )
       VALUES (
         ${admissionNo || null},
@@ -90,15 +88,10 @@ export async function POST(request) {
         ${section || null},
         ${rollNo || null},
         ${parentName || null},
-        ${parentPhone || null},
-        ${validParentEmail},
-        ${contact || null}, 
-        ${validEmail},
-        ${guardianName || null},
-        ${guardianPhone || null},
-        ${isActive},
+        ${finalPhone},
+        ${finalEmail},
         NOW(),
-        'Active'
+        ${isActive ? 'Active' : 'Inactive'} 
       )
       RETURNING student_id as id
     `;
