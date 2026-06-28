@@ -14,7 +14,7 @@ export async function GET(request) {
         notice_id as id,
         notice_title as title,
         notice_text as description,
-        applicable_class as targetAudience,
+        applicable_to as targetAudience,   -- FIXED: was applicable_class
         notice_date as noticeDate,
         created_datetime as createdAt,
         CASE WHEN record_status = 'Active' THEN 'active' ELSE 'inactive' END as status
@@ -43,7 +43,7 @@ export async function POST(request) {
       INSERT INTO dem_notice_board (
         notice_title,
         notice_text,
-        applicable_class,
+        applicable_to,      -- FIXED: was applicable_class
         notice_date,
         created_datetime,
         record_status
@@ -54,7 +54,7 @@ export async function POST(request) {
         ${targetAudience || null},
         ${currentDate},
         NOW(),
-        'Active'
+        ${isActive ? 'Active' : 'Inactive'}
       )
       RETURNING notice_id as id
     `;
