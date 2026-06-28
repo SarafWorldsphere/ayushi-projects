@@ -13,30 +13,30 @@ jobs:
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.HOST }}          # Fixed secret name
+          username: ${{ secrets.USERNAME }}  # Fixed secret name
+          key: ${{ secrets.KEY }}            # Fixed secret name
           script: |
             set -e
 
             echo ">>> Pulling latest code..."
-            cd /home/ubuntu/swais-website
+            cd /home/ubuntu/SWAIS-Admin-Dashboard  # Fixed path
             git pull origin main
 
             echo ">>> Backend setup..."
-            cd /home/ubuntu/swais-website/backend
+            cd /home/ubuntu/SWAIS-Admin-Dashboard/backend  # Fixed path
 
-            if [ ! -d "venv" ]; then
+            if [ ! -d ".venv" ]; then  # Fixed venv name to match your setup
                 echo "Creating virtual environment..."
-                python3 -m venv venv
+                python3 -m venv .venv
             fi
 
-            source venv/bin/activate
+            source .venv/bin/activate
             pip install -r requirements.txt
             deactivate
 
             echo ">>> Frontend setup..."
-            cd /home/ubuntu/swais-website
+            cd /home/ubuntu/SWAIS-Admin-Dashboard  # Fixed path
 
             export NVM_DIR="$HOME/.nvm"
             source $NVM_DIR/nvm.sh
@@ -47,15 +47,16 @@ jobs:
 
             echo ">>> Restarting apps..."
 
-            cd /home/ubuntu/swais-website/backend
+            cd /home/ubuntu/SWAIS-Admin-Dashboard/backend
             pm2 describe swais-backend > /dev/null 2>&1 \
               && pm2 restart swais-backend \
-              || pm2 start "python run.py" --name swais-backend
+              || pm2 start "python3 run.py" --name swais-backend
 
-            cd /home/ubuntu/swais-website
+            cd /home/ubuntu/SWAIS-Admin-Dashboard
+            # Ensuring it runs on port 7003 like your manual setup
             pm2 describe swais-frontend > /dev/null 2>&1 \
               && pm2 restart swais-frontend \
-              || pm2 start "npm start" --name swais-frontend
+              || pm2 start "npm run dev -- -p 7003" --name swais-frontend
 
             pm2 save
 

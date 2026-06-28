@@ -23,16 +23,16 @@ export async function GET(request) {
         teacher_id as id,
         full_name as name,
         subject_name as subject,
-        qualification as qualification,
+        NULL as qualification,       -- DB doesn't have this column
         class_id as classId,
-        section_1 as section1,
-        section_2 as section2,
+        section as section1,         -- Mapped to the only section column
+        NULL as section2,            -- DB doesn't have this column
         role as role,
-        phone as contact,
+        mobile_no as contact,        -- Mapped to mobile_no
         email_id as email,
-        CASE WHEN is_class_teacher = true THEN 'Y' ELSE '' END as isClassTeacher,
-        subjects as subjects,
-        CASE WHEN is_active = true THEN 'active' ELSE 'inactive' END as status
+        '' as isClassTeacher,        -- DB doesn't have this column
+        NULL as subjects,            -- DB doesn't have this column
+        CASE WHEN record_status = 'Active' THEN 'active' ELSE 'inactive' END as status
       FROM dem_teacher_master
       ORDER BY teacher_id DESC
       LIMIT 100
@@ -55,39 +55,29 @@ export async function POST(request) {
     
     const isActive = status === 'active';
     const validEmail = validateEmail(email);
-    const isClassTeacherFlag = isClassTeacher === 'Y';
-    const subjectsArray = subjects ? subjects.split(',').map(s => s.trim()) : [];
     
     const result = await sql`
       INSERT INTO dem_teacher_master (
         full_name,
         subject_name,
-        qualification,
         class_id,
-        section_1,
-        section_2,
+        section,
         role,
-        phone,
+        mobile_no,
         email_id,
-        is_class_teacher,
-        subjects,
-        is_active,
-        created_at
+        created_datetime,
+        record_status
       )
       VALUES (
         ${name}, 
         ${subject || null},
-        ${qualification || null},
         ${classId || null},
         ${section1 || null},
-        ${section2 || null},
         ${role || 'TEACHER'},
         ${contact || null}, 
         ${validEmail},
-        ${isClassTeacherFlag},
-        ${subjectsArray},
-        ${isActive},
-        NOW()
+        NOW(),
+        ${isActive ? 'Active' : 'Inactive'}
       )
       RETURNING teacher_id as id
     `;
