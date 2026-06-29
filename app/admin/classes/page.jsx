@@ -50,7 +50,8 @@ export default function ClassesPage() {
                 {classes.map((cls) => (
                   <tr key={cls.id} className="border-b border-gray-800 hover:bg-[#252538] transition-colors">
                     <td className="p-5">{cls.id}</td>
-                    <td className="p-5 font-semibold">{cls.className}</td>
+                    {/* FIXED: Changed cls.className to cls.classname */}
+                    <td className="p-5 font-semibold">{cls.classname}</td>
                     <td className="p-5">{cls.section || '—'}</td>
                     <td className="p-5">{cls.year}</td>
                     <td className="p-5">
