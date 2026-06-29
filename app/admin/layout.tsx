@@ -22,22 +22,24 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
 
+  // Added the Classes menu item right here!
   const menuItems = [
     { id: 'students', name: 'Students', icon: Users, path: '/admin/students', color: 'from-blue-500 to-cyan-500' },
     { id: 'teachers', name: 'Teachers', icon: BookOpen, path: '/admin/teachers', color: 'from-green-500 to-emerald-500' },
+    { id: 'classes', name: 'Classes', icon: GraduationCap, path: '/admin/classes', color: 'from-orange-500 to-amber-500' },
     { id: 'others', name: 'Others', icon: Settings, path: '/admin/others', color: 'from-purple-500 to-pink-500' },
   ];
 
   return (
     <SessionManager>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900">
-        {/* Sidebar - same as before */}
+        {/* Sidebar */}
         <motion.aside 
           initial={false}
           animate={{ width: sidebarOpen ? '280px' : '80px' }}
           className="fixed left-0 top-0 h-full bg-white/5 backdrop-blur-xl border-r border-white/10 z-50"
         >
-          {/* Sidebar content - same as before */}
+          {/* Sidebar content */}
           <div className="p-6">
             <div className="flex items-center justify-between mb-10">
               {sidebarOpen && (
