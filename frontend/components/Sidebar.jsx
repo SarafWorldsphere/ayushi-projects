@@ -44,7 +44,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
     document.cookie =
       "sgs_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 
-    window.location.href = "https://staging.sgs.swais.in";
+    window.location.href = "https://staging.dem.swais.in";
   };
 
   const handleClick = (item) => {
@@ -64,15 +64,15 @@ export default function Sidebar({ activeTab, setActiveTab }) {
           <div className="brand-box">
             <div className="logo-circle">
               <Image
-                src="/school-logo.jpeg"
-                alt="SGS Logo"
+                src="/DEM Logo.jpeg"
+                alt="DEMO Logo"
                 width={80}
                 height={80}
                 className="school-logo"
               />
             </div>
 
-            <h2>SGS SCHOOL</h2>
+            <h2>DEMO SCHOOL</h2>
             <p>Headmaster Dashboard</p>
           </div>
 

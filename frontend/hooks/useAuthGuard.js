@@ -9,7 +9,7 @@ export default function useAuthGuard() {
     const token = localStorage.getItem("token");
 
     //if (!token) {
-      //window.location.replace("https://staging.sgs.swais.in");
+      //window.location.replace("https://staging.dem.swais.in");
       //return;
     //}
 

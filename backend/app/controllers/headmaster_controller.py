@@ -48,7 +48,7 @@ def get_assignment_report(db: Session, data: dict, user_info: dict):
     """)).mappings().first()
 
     prompt = f"""
-You are SGS AI Executive Assistant for the Headmaster.
+You are DEMO AI Executive Assistant for the Headmaster.
 
 School Assignment Data:
 {json.dumps(dict(result or {}))}
@@ -116,7 +116,7 @@ def get_academic_analytics(db: Session, payload: dict, user_info: dict):
         """)).mappings().all()
 
     prompt = f"""
-You are SGS AI Academic Analytics Assistant.
+You are DEMO AI Academic Analytics Assistant.
 
 Analyze this data:
 {json.dumps([dict(x) for x in data])}
