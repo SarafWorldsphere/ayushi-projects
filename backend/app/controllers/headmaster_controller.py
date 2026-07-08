@@ -44,7 +44,7 @@ def get_assignment_report(db: Session, data: dict, user_info: dict):
             COUNT(*) AS total_assigned,
             SUM(CASE WHEN marks_obtained IS NOT NULL THEN 1 ELSE 0 END) AS completed,
             SUM(CASE WHEN marks_obtained IS NULL OR is_absent = true THEN 1 ELSE 0 END) AS missing
-        FROM sgs_assessment_results
+        FROM dem_assessment_results
     """)).mappings().first()
 
     prompt = f"""
@@ -82,9 +82,9 @@ def get_academic_analytics(db: Session, payload: dict, user_info: dict):
     if target_type == "student" and scope == "single_subject":
         data = db.execute(text("""
             SELECT a.title AS test, ar.percentage AS score
-            FROM sgs_assessment_results ar
-            JOIN sgs_assessments a ON a.assessment_id = ar.assessment_id
-            JOIN sgs_student_master s ON s.student_id = ar.student_id
+            FROM dem_assessment_results ar
+            JOIN dem_assessments a ON a.assessment_id = ar.assessment_id
+            JOIN dem_student_master s ON s.student_id = ar.student_id
             WHERE s.full_name ILIKE :name
         """), {"name": f"%{target_name}%"}).mappings().all()
 
@@ -92,9 +92,9 @@ def get_academic_analytics(db: Session, payload: dict, user_info: dict):
         data = db.execute(text("""
             SELECT a.assessment_type AS subject,
                    ROUND(AVG(ar.percentage), 2) AS score
-            FROM sgs_assessment_results ar
-            JOIN sgs_assessments a ON a.assessment_id = ar.assessment_id
-            JOIN sgs_student_master s ON s.student_id = ar.student_id
+            FROM dem_assessment_results ar
+            JOIN dem_assessments a ON a.assessment_id = ar.assessment_id
+            JOIN dem_student_master s ON s.student_id = ar.student_id
             WHERE s.full_name ILIKE :name
             GROUP BY a.assessment_type
         """), {"name": f"%{target_name}%"}).mappings().all()
@@ -102,16 +102,16 @@ def get_academic_analytics(db: Session, payload: dict, user_info: dict):
     elif target_type == "class" and scope == "single_subject":
         data = db.execute(text("""
             SELECT s.full_name AS student, ar.percentage AS score
-            FROM sgs_assessment_results ar
-            JOIN sgs_student_master s ON s.student_id = ar.student_id
+            FROM dem_assessment_results ar
+            JOIN dem_student_master s ON s.student_id = ar.student_id
         """)).mappings().all()
 
     elif target_type == "class" and scope == "all_subjects":
         data = db.execute(text("""
             SELECT a.assessment_type AS subject,
                    ROUND(AVG(ar.percentage), 2) AS avg_score
-            FROM sgs_assessment_results ar
-            JOIN sgs_assessments a ON a.assessment_id = ar.assessment_id
+            FROM dem_assessment_results ar
+            JOIN dem_assessments a ON a.assessment_id = ar.assessment_id
             GROUP BY a.assessment_type
         """)).mappings().all()
 
@@ -148,8 +148,8 @@ def get_teacher_performance(db: Session, data: dict, user_info: dict):
     teacher_data = db.execute(text("""
         SELECT u.full_name AS name,
                COUNT(a.assessment_id) AS assessments_created
-        FROM sgs_users_masters u
-        LEFT JOIN sgs_assessments a ON u.user_id = a.teacher_id
+        FROM dem_users_masters u
+        LEFT JOIN dem_assessments a ON u.user_id = a.teacher_id
         GROUP BY u.full_name
         ORDER BY assessments_created DESC
     """)).mappings().all()

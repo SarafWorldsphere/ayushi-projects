@@ -6,11 +6,9 @@ from app.database import get_db
 
 router = APIRouter()
 
-
 # ===================== STUDENTS =====================
 @router.get("/")
 def get_students(db: Session = Depends(get_db)):
-
     query = """
         SELECT
             s.student_id,
@@ -19,26 +17,22 @@ def get_students(db: Session = Depends(get_db)):
             c.class_name,
             s.section AS section_name,
             s.roll_no,
-            COALESCE(p.full_name, '-') AS parent_name,
-            COALESCE(p.phone, s.student_phone, '-') AS mobile_no,
-            s.student_email AS email_id,
+            COALESCE(s.parent_name, '-') AS parent_name,
+            COALESCE(s.mobile_no, '-') AS mobile_no,
+            s.email_id,
             s.record_status
-        FROM sgs_student_master s
-        LEFT JOIN sgs_class_master c ON s.class_id = c.class_id
-        LEFT JOIN sgs_parent_student_map spm ON s.student_id = spm.student_id
-        LEFT JOIN sgs_parent_master p ON spm.parent_id = p.parent_id
+        FROM dem_student_master s
+        LEFT JOIN dem_class_master c ON s.class_id = c.class_id
         WHERE s.record_status = 'Active'
         ORDER BY s.student_id;
     """
-
+    
     result = db.execute(text(query)).mappings().all()
     return [dict(row) for row in result]
-
 
 # ===================== PROGRESS =====================
 @router.get("/progress")
 def get_progress(db: Session = Depends(get_db)):
-
     query = """
         SELECT
             sm.marks_id,
@@ -58,14 +52,14 @@ def get_progress(db: Session = Depends(get_db)):
             sm.grade,
             sm.remarks,
             sm.record_status
-        FROM sgs_student_marks sm
-        LEFT JOIN sgs_student_master s ON sm.student_id = s.student_id
-        LEFT JOIN sgs_class_master c ON s.class_id = c.class_id
-        LEFT JOIN sgs_subject_master sub ON sm.subject_id = sub.subject_id
-        LEFT JOIN sgs_exam_master e ON sm.exam_id = e.exam_id
+        FROM dem_student_marks sm
+        LEFT JOIN dem_student_master s ON sm.student_id = s.student_id
+        LEFT JOIN dem_class_master c ON s.class_id = c.class_id
+        LEFT JOIN dem_subject_master sub ON sm.subject_id = sub.subject_id
+        LEFT JOIN dem_exam_master e ON sm.exam_id = e.exam_id
         WHERE sm.record_status = 'Active'
         ORDER BY sm.marks_id;
     """
-
+    
     result = db.execute(text(query)).mappings().all()
     return [dict(row) for row in result]

@@ -42,7 +42,7 @@ export default function Sidebar({ activeTab, setActiveTab }) {
 
     // clear cookie (if used)
     document.cookie =
-      "sgs_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
+      "dem_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
 
     window.location.href = "https://staging.dem.swais.in";
   };

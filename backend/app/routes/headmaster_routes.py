@@ -29,8 +29,8 @@ def get_headmaster(db: Session = Depends(get_db)):
 
     query = """
         SELECT u.full_name, r.role_name
-        FROM sgs_users_masters u
-        JOIN sgs_role_response r ON r.role_id = u.role_id
+        FROM dem_users_masters u
+        JOIN dem_role_response r ON r.role_id = u.role_id
         WHERE LOWER(r.role_name) = 'headmaster'
           AND u.is_active = TRUE
           AND u.record_status = 'Active'
