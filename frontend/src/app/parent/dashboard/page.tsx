@@ -116,18 +116,26 @@ export default function ParentDashboard() {
   const [error,     setError]     = useState<string | null>(null);
 
   useEffect(() => {
-    if (!studentId) return; // wait for real studentId from localStorage / ChildSelector
-    const load = async () => {
-      setIsLoading(true); setError(null); setData(null);
-      try {
-        console.log('[SSS] Dashboard: fetching for student_id', studentId);
-        setData(await fetchDashboardData(studentId));
-      }
-      catch { setError('Failed to load dashboard. Please try again.'); }
-      finally { setIsLoading(false); }
-    };
-    load();
-  }, [studentId]);
+        // Wait for a real studentId, and NEVER try to fetch dashboard data for the Parent's ID
+        if (!studentId || studentId === parentId) return; 
+
+        const load = async () => {
+            setIsLoading(true); 
+            setError(null); 
+            setData(null);
+            try {
+                console.log('[DEMO] Dashboard: fetching for student_id', studentId);
+                setData(await fetchDashboardData(studentId));
+            }
+            catch { 
+                setError('Failed to load dashboard. Please try again.'); 
+            }
+            finally { 
+                setIsLoading(false); 
+            }
+        };
+        load();
+    }, [studentId, parentId]);
 
   // ── Extract real data ────────────────────────────────────────────────────
   const studentName    = data?.student?.full_name  ?? '';

@@ -22,9 +22,9 @@ export function useDashboardState() {
   // Defaults parentId to 10 (seeded demo) when nothing is stored so the app
   // loads with real data without any manual localStorage intervention.
   useEffect(() => {
-    const savedStudent = localStorage.getItem('sss_student_id');
-    const savedParent  = localStorage.getItem('sss_parent_id');
-    const savedLang    = localStorage.getItem('sss_language');
+    const savedStudent = localStorage.getItem('dem_student_id');
+    const savedParent  = localStorage.getItem('dem_parent_id');
+    const savedLang    = localStorage.getItem('dem_language');
 
     const sid = savedStudent ? Number(savedStudent) : 1;
     const pid = savedParent  ? Number(savedParent)  : 1; 
@@ -34,24 +34,24 @@ export function useDashboardState() {
     if (savedLang) setLanguage(savedLang);
     setMounted(true);
 
-    console.log('[SSS] localStorage → student_id:', sid, ' parent_id:', pid);
+    console.log('[DEMO] localStorage → student_id:', sid, ' parent_id:', pid);
   }, []);
 
   const updateStudentId = (id: number) => {
     setStudentId(id);
-    localStorage.setItem('sss_student_id', id.toString());
-    console.log('[SSS] studentId updated →', id);
+    localStorage.setItem('dem_student_id', id.toString());
+    console.log('[DEMO] studentId updated →', id);
   };
 
   const updateParentId = (id: number) => {
     setParentId(id);
-    localStorage.setItem('sss_parent_id', id.toString());
-    console.log('[SSS] parentId updated →', id);
+    localStorage.setItem('dem_parent_id', id.toString());
+    console.log('[DEMO] parentId updated →', id);
   };
 
   const updateLanguage = (lang: string) => {
     setLanguage(lang);
-    localStorage.setItem('sss_language', lang);
+    localStorage.setItem('dem_language', lang);
   };
 
   return {

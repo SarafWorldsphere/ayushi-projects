@@ -152,11 +152,11 @@ export default function AssessmentsPage() {
       setCustomStart('');
       setCustomEnd('');
       try {
-        console.log('[SSS] Assessments: fetching for student_id', studentId);
+        console.log('[DEMO] Assessments: fetching for student_id', studentId);
         const data = await fetchAssessmentHistory(studentId);
         setAssessments(data ?? []);
       } catch (e) {
-        console.error('[SSS] Assessments: failed to load', e);
+        console.error('[DEMO] Assessments: failed to load', e);
         setAssessments([]);
       } finally {
         setIsLoading(false);

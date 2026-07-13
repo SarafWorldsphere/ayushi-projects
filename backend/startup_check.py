@@ -6,7 +6,7 @@ connected database before uvicorn starts serving traffic.
 
 WHY THIS EXISTS
 ───────────────
-When DB_TABLE_PREFIX="sss_" the app targets the SSS AWS RDS instance.
+When DB_TABLE_PREFIX="dem_" the app targets the DEMO AWS RDS instance.
 Some tables that existed locally (e.g. teacher_parent_interaction) have
 NO equivalent on RDS.  Rather than crashing mid-request with an obscure
 psycopg2 "relation does not exist" error, this script lets the startup
@@ -33,7 +33,7 @@ Required tables (app will NOT start if any are absent):
     support_tickets, ticket_messages
 
 Legacy / optional tables (warning only — app continues):
-    teacher_parent_interaction  — removed from SSS RDS; remarks now use
+    teacher_parent_interaction  — removed from DEMO RDS; remarks now use
                                   ticket_messages with sender_type='TEACHER'
     attendance_master           — attendance module disabled in parent portal
     call_requests               — replaced by Communication Center
@@ -76,7 +76,7 @@ REQUIRED_TABLES = [
 
 # Missing legacy tables generate a WARNING but do NOT block startup.
 LEGACY_TABLES = [
-    "teacher_parent_interaction",   # absent on SSS RDS — remarks replaced
+    "teacher_parent_interaction",   # absent on DEMO RDS — remarks replaced
     "attendance_master",            # attendance module disabled
     "call_requests",                # replaced by Communication Center
     "leave_requests",               # replaced by Communication Center

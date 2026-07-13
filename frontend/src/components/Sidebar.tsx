@@ -12,8 +12,8 @@
     // Listen for toggle events dispatched by TopBar's hamburger button
     useEffect(() => {
       const handleToggle = () => setIsOpen(prev => !prev);
-      window.addEventListener('sssSidebarToggle', handleToggle);
-      return () => window.removeEventListener('sssSidebarToggle', handleToggle);
+      window.addEventListener('demSidebarToggle', handleToggle);
+      return () => window.removeEventListener('demSidebarToggle', handleToggle);
     }, []);
 
     // Auto-close sidebar when route changes (mobile navigation)
@@ -55,15 +55,15 @@
             </div>
             <div className="flex items-center gap-3 flex-1 min-w-0">
     <Image
-      src="/logo.jpg"
-      alt="SSS School Logo"
-      width={45}
-      height={45}
-      className="rounded-full"
-    />
+  src="/demlogo.jpeg"
+  alt="DEMO School Logo"
+  width={45}
+  height={45}
+  style={{ width: "auto", height: "auto" }} // Adding this will silence the warning!
+/>
 
     <div>
-      <h1 className="font-bold text-lg leading-tight">SSS SCHOOL</h1>
+      <h1 className="font-bold text-lg leading-tight">DEMO SCHOOL</h1>
       <p className="text-xs text-gray-400">Parent Dashboard</p>
     </div>
   </div>

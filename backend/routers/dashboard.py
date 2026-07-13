@@ -58,6 +58,7 @@ def get_dashboard(student_id: int, db: Session = Depends(get_db)):
 #     except HTTPException as e:
 #         raise e
 #     except Exception as e:
+        print(f"🚨🚨🚨 THE HIDDEN ERROR IS: {e}")
 #         raise HTTPException(status_code=500, detail=str(e))
 # ──────────────────────────────────────────────────────────────────────────
 
@@ -259,7 +260,7 @@ def get_quiz_history(student_id: int, db: Session = Depends(get_db)):
             percentage=percentage,
             teacher_name="Course Instructor",
             remarks=suggestion,
-            quiz_date=quiz.created_at.isoformat() if hasattr(quiz, 'created_at') and quiz.created_at else datetime.utcnow().isoformat(),
+            quiz_date=quiz.created_datetime.isoformat() if hasattr(quiz, 'created_datetime') and quiz.created_datetime else datetime.utcnow().isoformat(),
             status=status,
             suggestion=suggestion
         ))
@@ -306,7 +307,7 @@ def get_remarks_history(student_id: int, db: Session = Depends(get_db)):
         idx += 1
 
     for msg, ticket in teacher_msgs:
-        remark_date = msg.created_at or datetime.utcnow()
+        remark_date = msg.created_datetime or datetime.utcnow()
         all_remarks.append({
             "remark_id": idx,
             "teacher_name": msg.sender_name or "Teacher",
@@ -348,14 +349,14 @@ def get_notices_history(student_id: int, db: Session = Depends(get_db)):
             )
         )
 
-    notices_query = notices_query.order_by(NoticeBoard.created_at.desc()).all()
+    notices_query = notices_query.order_by(NoticeBoard.created_datetime.desc()).all()
 
     result = [
         NoticeSchema(
             notice_id=n.notice_id,
             notice_title=n.notice_title or "Notice",
             notice_text=n.notice_text.strip(),
-            notice_date=n.notice_date.strftime("%d %b %Y") if n.notice_date else (n.created_at.strftime("%d %b %Y") if n.created_at else ""),
+            notice_date=n.notice_date.strftime("%d %b %Y") if n.notice_date else (n.created_datetime.strftime("%d %b %Y") if n.created_datetime else ""),
             applicable_class=n.applicable_class or "All",
             posted_by_name=t or "Admin"
         ) for n, t in notices_query
@@ -473,14 +474,14 @@ def get_notifications(student_id: int, db: Session = Depends(get_db)):
                     NoticeBoard.applicable_class.is_(None),
                 )
             )
-        notices = notice_q.order_by(NoticeBoard.created_at.desc()).limit(5).all()
+        notices = notice_q.order_by(NoticeBoard.created_datetime.desc()).limit(5).all()
         for n in notices:
             notifications.append(NotificationSchema(
                 id=f"not_{n.notice_id}",
                 type="announcement",
                 title=n.notice_title or "New Notice",
                 message=(n.notice_text[:80] + "…") if n.notice_text and len(n.notice_text) > 80 else (n.notice_text or ""),
-                date=n.created_at.isoformat() if n.created_at else today.isoformat(),
+                date=n.created_datetime.isoformat() if n.created_datetime else today.isoformat(),
                 is_read=False,  # read state tracked client-side
                 link=f"/parent/notices?open={n.notice_id}",
             ))

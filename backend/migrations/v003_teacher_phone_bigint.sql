@@ -5,8 +5,8 @@
 -- WHY THIS IS NEEDED
 -- ─────────────────
 -- The SQLAlchemy model TeacherMaster.phone was declared as
--- Column(String) while the SSS RDS column is BIGINT.
--- When DB_TABLE_PREFIX="sss_" the app connects to RDS, and
+-- Column(String) while the DEMO RDS column is BIGINT.
+-- When DB_TABLE_PREFIX="dem_" the app connects to RDS, and
 -- any INSERT with a Python str raises:
 --
 --   psycopg2.errors.DatatypeMismatch: column "phone" is of
@@ -21,7 +21,7 @@
 --   automatic if anything fails.
 -- • Non-numeric phone strings are NULLed first so the type
 --   cast never raises an error.
--- • Both the plain (local dev) and sss_ (RDS-aligned) table
+-- • Both the plain (local dev) and dem_ (RDS-aligned) table
 --   names are handled via a DO $$ block using the
 --   DB_TABLE_PREFIX environment variable approach — but since
 --   SQL cannot read env vars, this script handles BOTH table
@@ -33,11 +33,11 @@
 --   Windows PowerShell:
 --     $env:PGPASSWORD = "1234"
 --     & "C:\Program Files\PostgreSQL\17\bin\psql.exe" `
---         -U postgres -d mydb_sss `
+--         -U postgres -d mydb_dem `
 --         -f "backend/migrations/v003_teacher_phone_bigint.sql"
 --
 --   Linux / macOS:
---     PGPASSWORD=1234 psql -U postgres -d mydb_sss \
+--     PGPASSWORD=1234 psql -U postgres -d mydb_dem \
 --         -f backend/migrations/v003_teacher_phone_bigint.sql
 -- ============================================================
 
@@ -50,7 +50,7 @@ DO $$
 DECLARE
     tbl TEXT;
 BEGIN
-    FOREACH tbl IN ARRAY ARRAY['teacher_master', 'sss_teacher_master']
+    FOREACH tbl IN ARRAY ARRAY['teacher_master', 'dem_teacher_master']
     LOOP
         -- Skip if the table does not exist in this database
         IF NOT EXISTS (

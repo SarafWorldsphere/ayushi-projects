@@ -12,8 +12,8 @@ Workflow for dynamic ID setup:
   1. Seed TEST_ rows:  python mock_data.py
   2. Call GET /debug/seeded-parents  → note the real parent_id
   3. In browser DevTools console:
-       localStorage.setItem('sss_parent_id', '<parent_id>')
-       localStorage.setItem('sss_student_id', '<student_id>')
+       localStorage.setItem('dem_parent_id', '<parent_id>')
+       localStorage.setItem('dem_student_id', '<student_id>')
   4. Refresh the page — ChildSelector loads real children automatically.
 
 NEVER expose this router in a production build.

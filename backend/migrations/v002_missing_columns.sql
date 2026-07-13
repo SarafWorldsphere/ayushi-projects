@@ -1,7 +1,7 @@
 -- ============================================================
--- SSS Parent Dashboard  |  v002 — ORM Gap Fix
+-- DEMO Parent Dashboard  |  v002 — ORM Gap Fix
 -- File   : backend/migrations/v002_missing_columns.sql
--- Target : Local PostgreSQL (mydb_sss)
+-- Target : Local PostgreSQL (mydb_dem)
 -- Safe   : Idempotent — re-runnable, never drops, never nullifies data
 -- Purpose: Adds every column the updated ORM models.py now declares
 --          but the local DB does not yet have, and renames the four
@@ -25,7 +25,7 @@
 --   teacher_parent_interaction, ticket_messages
 --
 -- RUN:
---   psql -U postgres -d mydb_sss -f v002_missing_columns.sql
+--   psql -U postgres -d mydb_dem -f v002_missing_columns.sql
 -- ============================================================
 
 BEGIN;
@@ -58,7 +58,7 @@ DO $$ BEGIN
 END $$;
 
 -- 1b. notice_board: created_at → created_datetime
---     dashboard_service.py uses NoticeBoard.created_at in ORDER BY and
+--     dashboard_service.py uses NoticeBoard.created_datetime in ORDER BY and
 --     notice.created_at for date display — both resolve via the ORM alias.
 DO $$ BEGIN
     IF EXISTS (

@@ -12,7 +12,7 @@ interface ChildSelectorProps {
    * The component will show a placeholder and skip fetching until
    * a real (> 0) parentId is provided.
    *
-   * Set via: localStorage.setItem('sss_parent_id', '<id>')  then refresh.
+   * Set via: localStorage.setItem('dem_parent_id', '<id>')  then refresh.
    * Discover seeded IDs via: GET /debug/seeded-parents
    */
   parentId?: number;
@@ -38,17 +38,17 @@ export default function ChildSelector({
       setLoading(true);
       try {
         const data = await fetchParentChildren(parentId);
-        console.log('[SSS] ChildSelector: parent', parentId, '→', data.length, 'children', data);
+        console.log('[DEMO] ChildSelector: parent', parentId, '→', data.length, 'children', data);
         setChildren(data);
 
         // Auto-select the first child when the current studentId is not in the list
         // (covers fresh load with studentId=0 and parent switch).
         if (data.length > 0 && !data.find((c: any) => c.student_id === currentStudentId)) {
-          console.log('[SSS] ChildSelector: auto-selecting student_id', data[0].student_id);
+          console.log('[DEMO] ChildSelector: auto-selecting student_id', data[0].student_id);
           onSelect(data[0].student_id);
         }
       } catch (error) {
-        console.error('[SSS] ChildSelector: failed to load children for parent', parentId, error);
+        console.error('[DEMO] ChildSelector: failed to load children for parent', parentId, error);
       } finally {
         setLoading(false);
       }
@@ -69,7 +69,7 @@ export default function ChildSelector({
     return (
       <div className="flex items-center gap-2 text-xs text-gray-400 font-medium px-3 py-2 bg-gray-50 rounded-full border border-gray-200">
         <span>👤</span>
-        <span>Set <code className="font-mono">sss_parent_id</code> in localStorage</span>
+        <span>Set <code className="font-mono">dem_parent_id</code> in localStorage</span>
       </div>
     );
   }

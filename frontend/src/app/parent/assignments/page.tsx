@@ -64,7 +64,7 @@ export default function AssignmentsPage() {
   const load = async () => {
     if (!studentId) return; // wait for real studentId
     setIsLoading(true);
-    console.log('[SSS] Assignments: fetching for student_id', studentId);
+    console.log('[DEMO] Assignments: fetching for student_id', studentId);
     const [a,an] = await Promise.all([fetchAssignmentsHistory(studentId),fetchAssignmentAnalytics(studentId)]);
     setAssignments(a); setAnalytics(an); setIsLoading(false);
   };

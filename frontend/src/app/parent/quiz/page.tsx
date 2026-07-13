@@ -70,11 +70,11 @@ export default function QuizPerformancePage() {
       setSearch('');
       setSubj('All');
       try {
-        console.log('[SSS] Quiz: fetching for student_id', studentId);
+        console.log('[DEMO] Quiz: fetching for student_id', studentId);
         const data = await fetchQuizHistory(studentId);
         setQuizzes(data);
       } catch (e) {
-        console.error('[SSS] Quiz: failed to load quizzes', e);
+        console.error('[DEMO] Quiz: failed to load quizzes', e);
       } finally {
         setIsLoading(false);
       }

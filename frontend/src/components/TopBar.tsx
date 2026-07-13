@@ -12,7 +12,7 @@ import { BellIcon, Bars3Icon, UserCircleIcon, ArrowRightOnRectangleIcon } from '
 function getReadIds(studentId: number, kind: 'notif'): Set<string> {
   if (typeof window === 'undefined') return new Set();
   try {
-    const raw = localStorage.getItem(`sss_read_${kind}_${studentId}`);
+    const raw = localStorage.getItem(`dem_read_${kind}_${studentId}`);
     return raw ? new Set(JSON.parse(raw)) : new Set();
   } catch { return new Set(); }
 }
@@ -20,7 +20,7 @@ function getReadIds(studentId: number, kind: 'notif'): Set<string> {
 function saveReadIds(studentId: number, kind: 'notif', ids: Set<string>) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(`sss_read_${kind}_${studentId}`, JSON.stringify([...ids]));
+    localStorage.setItem(`dem_read_${kind}_${studentId}`, JSON.stringify([...ids]));
   } catch { /* ignore */ }
 }
 
@@ -109,13 +109,13 @@ export default function TopBar({
   useEffect(() => { loadNotifications(); }, [loadNotifications]);
 
   // Restore read state from localStorage on mount / studentId change.
-  // Also merge in notice read states from the shared sss_read_notices_ key
+  // Also merge in notice read states from the shared dem_read_notices_ key
   // so that notices marked read on the Notices page are reflected in the bell.
   useEffect(() => {
     if (!studentId) return;
     const ids = getReadIds(studentId, 'notif');
     try {
-      const raw = localStorage.getItem(`sss_read_notices_${studentId}`);
+      const raw = localStorage.getItem(`dem_read_notices_${studentId}`);
       if (raw) {
         const noticeIds: number[] = JSON.parse(raw);
         for (const nid of noticeIds) ids.add(`not_${nid}`);
@@ -125,7 +125,7 @@ export default function TopBar({
   }, [studentId]);
 
   // Real-time sync: when the Notices page marks a notice read (same tab),
-  // it fires 'sssNoticeRead'. We update readIds so the bell count drops immediately.
+  // it fires 'demNoticeRead'. We update readIds so the bell count drops immediately.
   useEffect(() => {
     const handler = (e: Event) => {
       const { noticeId, sid } = (e as CustomEvent).detail ?? {};
@@ -136,8 +136,8 @@ export default function TopBar({
         return next;
       });
     };
-    window.addEventListener('sssNoticeRead', handler);
-    return () => window.removeEventListener('sssNoticeRead', handler);
+    window.addEventListener('demNoticeRead', handler);
+    return () => window.removeEventListener('demNoticeRead', handler);
   }, [studentId]);
 
   // Close dropdowns on outside click
@@ -160,15 +160,15 @@ export default function TopBar({
     setReadIds(next);
     if (studentId) {
       saveReadIds(studentId, 'notif', next);
-      // Sync notice reads to the shared sss_read_notices_ key used by Notices page
+      // Sync notice reads to the shared dem_read_notices_ key used by Notices page
       if (id.startsWith('not_')) {
         const noticeId = parseInt(id.slice(4));
         if (!isNaN(noticeId)) {
           try {
-            const raw = localStorage.getItem(`sss_read_notices_${studentId}`);
+            const raw = localStorage.getItem(`dem_read_notices_${studentId}`);
             const existing: Set<number> = raw ? new Set(JSON.parse(raw)) : new Set();
             existing.add(noticeId);
-            localStorage.setItem(`sss_read_notices_${studentId}`, JSON.stringify([...existing]));
+            localStorage.setItem(`dem_read_notices_${studentId}`, JSON.stringify([...existing]));
           } catch { /* ignore */ }
         }
       }
@@ -180,7 +180,7 @@ export default function TopBar({
     setReadIds(next);
     if (studentId) {
       saveReadIds(studentId, 'notif', next);
-      // Sync all notice IDs to the shared sss_read_notices_ key
+      // Sync all notice IDs to the shared dem_read_notices_ key
       const noticeIds: number[] = [];
       for (const id of next) {
         if (id.startsWith('not_')) {
@@ -190,10 +190,10 @@ export default function TopBar({
       }
       if (noticeIds.length > 0) {
         try {
-          const raw = localStorage.getItem(`sss_read_notices_${studentId}`);
+          const raw = localStorage.getItem(`dem_read_notices_${studentId}`);
           const existing: Set<number> = raw ? new Set(JSON.parse(raw)) : new Set();
           for (const nid of noticeIds) existing.add(nid);
-          localStorage.setItem(`sss_read_notices_${studentId}`, JSON.stringify([...existing]));
+          localStorage.setItem(`dem_read_notices_${studentId}`, JSON.stringify([...existing]));
         } catch { /* ignore */ }
       }
     }
@@ -204,7 +204,7 @@ export default function TopBar({
     setShowProfile(false);
     setShowToast(true);
     setTimeout(() => {
-       window.location.replace('https://staging.sss.swais.in');
+       window.location.replace('https://staging.dem.swais.in');
     }, 1000);
   };
 
@@ -213,7 +213,7 @@ export default function TopBar({
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 border-b border-gray-200 sticky top-0 z-20">
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button
-            onClick={() => window.dispatchEvent(new Event('sssSidebarToggle'))}
+            onClick={() => window.dispatchEvent(new Event('demSidebarToggle'))}
             className="md:hidden text-gray-500 hover:text-gray-700 transition-colors shrink-0"
             aria-label="Open menu"
           >

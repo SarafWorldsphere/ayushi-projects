@@ -41,8 +41,8 @@ DELETION ORDER (FK dependency chain — children before parents)
   14. ClassMaster      (FK → UsersMaster via class_teacher_id)
   15. UsersMaster      (root — no FK dependencies on modeled tables)
 
-NOTE: TeacherParentInteractionV2 removed — sss_teacher_parent_interaction
-does NOT exist on the SSS AWS RDS production database.
+NOTE: TeacherParentInteractionV2 removed — dem_teacher_parent_interaction
+does NOT exist on the DEMO AWS RDS production database.
 
 USAGE
 ─────

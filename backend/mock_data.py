@@ -246,10 +246,10 @@ def seed_data(verbose: bool = True) -> None:
         # 5b. TEACHER USERS  (UsersMaster)
         #
         #     Production FK hierarchy:
-        #       sss_subject_master.teacher_id     → sss_users_master.user_id
-        #       sss_class_master.class_teacher_id → sss_users_master.user_id
-        #       sss_assignment_master.assigned_by → sss_users_master.user_id
-        #       sss_notice_board.posted_by        → sss_users_master.user_id
+        #       dem_subject_master.teacher_id     → dem_users_master.user_id
+        #       dem_class_master.class_teacher_id → dem_users_master.user_id
+        #       dem_assignment_master.assigned_by → dem_users_master.user_id
+        #       dem_notice_board.posted_by        → dem_users_master.user_id
         #
         #     One UsersMaster row is created for every teacher_def.
         #     After flushing, class_teacher_id is back-filled on existing
@@ -263,16 +263,17 @@ def seed_data(verbose: bool = True) -> None:
         teacher_users = []
         for tname, elocal, _subj in teacher_defs:
             u = UsersMaster(
-                login_id=_email(elocal),          # unique login; seed-tagged email
-                password_hash="seed_dummy_hash",
-                full_name=_name(tname),
-                email=_email(elocal),             # maps to physical col email_id
-                mobile_no=str(random.randint(9_000_000_000, 9_999_999_999)),
-                is_active=True,
-            )
-            db.add(u)
-            teacher_users.append(u)
-        db.flush()   # populates user_id PKs
+            login_id=_email(elocal),          # unique login; seed-tagged email
+            password_hash="seed_dummy_hash",
+            full_name=_name(tname),
+            email=_email(elocal),             # maps to physical col email_id
+            mobile_no=str(random.randint(9_000_000_000, 9_999_999_999)),
+            is_active=True,
+            role_id=2,
+        )
+        db.add(u)
+        teacher_users.append(u)
+        db.flush()  # populates user_id PKs
 
         # Back-fill class_teacher_id now that user_ids are assigned.
         # Round-robins teacher users across classes (1 teacher user per class).
@@ -474,7 +475,7 @@ def seed_data(verbose: bool = True) -> None:
         #     Messages identified by ticket_id IN [seeded ticket IDs]
         #
         #     NOTE: TeacherParentInteractionV2 seeding removed — that table
-        #     (teacher_parent_interaction) does NOT exist on SSS RDS.
+        #     (teacher_parent_interaction) does NOT exist on DEMO RDS.
         #     Teacher remarks are now represented by TicketMessage rows with
         #     sender_type='TEACHER' so the Remarks widget still has data.
         # ══════════════════════════════════════════════════════════════════════
@@ -564,7 +565,7 @@ def seed_data(verbose: bool = True) -> None:
             print()
             print("  Every record carries a TEST_ or SEED_ marker.")
             print("  FK columns (teacher_id / assigned_by / posted_by)")
-            print("  reference users_master.user_id — aligned with SSS RDS.")
+            print("  reference users_master.user_id — aligned with DEMO RDS.")
             print("  Run  python cleanup_seed.py          to preview cleanup.")
             print("  Run  python cleanup_seed.py --confirm  to delete.")
             print("=" * 55)

@@ -9,7 +9,7 @@ from models import (
     # AttendanceMaster        — DISABLED: attendance module removed from parent portal.
     # CallRequest             — DISABLED: call-request routes disabled; not queried here.
     # SchoolEvent             — imported but unused; upcoming_events=[] is hardcoded.
-    # TeacherParentInteractionV2 — REMOVED: table absent on SSS RDS.
+    # TeacherParentInteractionV2 — REMOVED: table absent on DEMO RDS.
     #   Remarks now come from TicketMessage (sender_type='TEACHER') via SupportTicket.
     # TeacherMaster           — REMOVED from active imports: posted_by / assigned_by
     #   now FK to users_master.user_id; all name lookups use UsersMaster.
@@ -150,8 +150,8 @@ def get_dashboard_data(db: Session, student_id: int):
 
     # 4. Remarks
     # Source: teacher replies inside Communication Center tickets for this student.
-    # TeacherParentInteractionV2 removed — sss_teacher_parent_interaction does
-    # NOT exist on the SSS AWS RDS production database.
+    # TeacherParentInteractionV2 removed — dem_teacher_parent_interaction does
+    # NOT exist on the DEMO AWS RDS production database.
     teacher_msgs = db.query(TicketMessage, SupportTicket)\
         .join(SupportTicket, TicketMessage.ticket_id == SupportTicket.ticket_id)\
         .filter(SupportTicket.student_id == student_id)\
@@ -186,7 +186,7 @@ def get_dashboard_data(db: Session, student_id: int):
                 NoticeBoard.applicable_class.is_(None),
             )
         )\
-        .order_by(NoticeBoard.created_at.desc()).all()
+        .order_by(NoticeBoard.created_datetime.desc()).all()
         
     notice_list = []
     for notice, teacher_name in notices_query:

@@ -2,11 +2,11 @@
 Assessments service — single JOIN, no N+1.
 
 Data flow:
-  sss_assessment_results
-      → sss_assessments       (title, type, date, max_marks, chapter FK)
-      → sss_chapter_master    (chapter_name)
-      → sss_subject_master    (subject_name)
-      → sss_teacher_master    (teacher full_name)
+  dem_assessment_results
+      → dem_assessments       (title, type, date, max_marks, chapter FK)
+      → dem_chapter_master    (chapter_name)
+      → dem_subject_master    (subject_name)
+      → dem_teacher_master    (teacher full_name)
 
 Both history and analytics derive their data from _fetch_rows() so the DB
 is queried exactly once per request.
