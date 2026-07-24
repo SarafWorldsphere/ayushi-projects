@@ -15,17 +15,21 @@ import NotificationsSection from "../components/NotificationsSection";
 import FunctionsSection from "../components/FunctionsSection";
 import ToursSection from "../components/ToursSection";
 import ClassTeachersSection from "../components/ClassTeachersSection";
+import Header from '../components/Header';
+import { useLanguage } from '../context/LanguageContext';
 
 // ================= API SETUP =================
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-  timeout: 10000, // production safety
+  timeout: 10000, 
 });
 
 // ================= MAIN PAGE =================
 export default function HomePage() {
   const isCheckingAuth = useAuthGuard();
   const fetched = useRef(false);
+
+  const { translateText } = useLanguage();
 
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(false);
@@ -57,7 +61,6 @@ export default function HomePage() {
     classTeachers: false,
   });
 
-
   // ================= DASHBOARD LOAD =================
   useEffect(() => {
     if (fetched.current) return;
@@ -66,7 +69,6 @@ export default function HomePage() {
     const loadDashboard = async () => {
       try {
         setLoading(true);
-
         const res = await api.get("/dashboard/");
         const data = res.data;
 
@@ -75,7 +77,6 @@ export default function HomePage() {
         setPieData(data.pass_fail || []);
         setHeadmaster(data.headmaster || null);
         setUnreadCount(data.unread_count || 0);
-
       } catch (err) {
         console.error("Dashboard API Error:", err);
       } finally {
@@ -85,6 +86,7 @@ export default function HomePage() {
 
     loadDashboard();
   }, []);
+
   // ================= TAB HANDLER =================
   const handleTabChange = async (tab) => {
     setActiveTab(tab);
@@ -92,50 +94,43 @@ export default function HomePage() {
     try {
       setLoading(true);
 
-      // ================= STUDENTS =================
       if (tab === "students" && !loaded.students) {
         const res = await api.get("/students/");
         setStudents(res.data || []);
         setLoaded((p) => ({ ...p, students: true }));
       }
 
-      // ================= TEACHERS =================
       if (tab === "teachers" && !loaded.teachers) {
         const res = await api.get("/teachers/");
         setTeachers(res.data || []);
         setLoaded((p) => ({ ...p, teachers: true }));
       }
 
-      // ================= PROGRESS =================
-      if (tab === "progress" && !loaded.progress) {
-        const res = await api.get("/students/progress"); // FIXED
+      // --> FIXED: Now catches both "progress" and any variation of "Academic Analytics"
+      if ((tab === "progress" || tab === "academicAnalytics" || tab === "academic-analytics" || tab === "Academic Analytics") && !loaded.progress) {
+        const res = await api.get("/students/progress"); 
         setProgressData(res.data || []);
         setLoaded((p) => ({ ...p, progress: true }));
       }
 
-      // ================= NOTIFICATIONS =================
       if (tab === "notifications" && !loaded.notifications) {
         const res = await api.get("/notifications/");
-        console.log("Notification API:", res.data);
         setNotifications(res.data || []);
         setLoaded((p) => ({ ...p, notifications: true }));
       }
 
-      // ================= FUNCTIONS =================
       if (tab === "functions" && !loaded.functions) {
         const res = await api.get("/functions/");
         setFunctionsData(res.data || []);
         setLoaded((p) => ({ ...p, functions: true }));
       }
 
-      // ================= TOURS =================
       if (tab === "tours" && !loaded.tours) {
         const res = await api.get("/tours/");
         setToursData(res.data || []);
         setLoaded((p) => ({ ...p, tours: true }));
       }
 
-      // ================= CLASS TEACHERS =================
       if (tab === "classTeachers" && !loaded.classTeachers) {
         const res = await api.get("/class-teachers/");
         setClassTeachers(res.data || []);
@@ -152,9 +147,7 @@ export default function HomePage() {
   // ================= SEARCH =================
   const searchItems = (items, keys) => {
     if (!searchText.trim()) return items || [];
-
     const search = searchText.toLowerCase();
-
     return (items || []).filter((item) =>
       keys.some((key) =>
         String(item?.[key] || "")
@@ -164,33 +157,21 @@ export default function HomePage() {
     );
   };
 
-  const translateText = async (text, language) => {
-  const response = await api.post("/headmaster/translate", {
-    text,
-    target_language: language,
-    user_info: headmaster,
-  });
-
-  return response.data.translation;
-};
-
   // ================= UI =================
   return (
+    <>
     <div className="layout">
-
       <Sidebar activeTab={activeTab} setActiveTab={handleTabChange} />
 
       <div className="main-content">
-
         <Topbar
           headmaster={headmaster}
           searchText={searchText}
           setSearchText={setSearchText}
           notificationCount={unreadCount}
-           translateText={translateText}
+          translateText={translateText}
         />
 
-        {/* Optional loading indicator */}
         {loading && (
           <div style={{ padding: "10px" }}>
             Loading...
@@ -210,7 +191,6 @@ export default function HomePage() {
             students={students}
             searchText={searchText}
             loaded={loaded.students}
-
           />
         )}
 
@@ -227,7 +207,8 @@ export default function HomePage() {
           />
         )}
 
-        {activeTab === "progress" && (
+        {/* --> FIXED: Renders the component if "progress" OR "Academic Analytics" is clicked */}
+        {(activeTab === "progress" || activeTab === "academicAnalytics" || activeTab === "academic-analytics" || activeTab === "Academic Analytics") && (
           <ProgressSection
             progressData={searchItems(progressData, [
               "full_name",
@@ -238,44 +219,46 @@ export default function HomePage() {
             ])}
           />
         )}
+
         {activeTab === "notifications" && (
-        <NotificationsSection
-        notifications={searchItems(notifications, [
-        "notice_title",
-        "notice_text",
-        "notice_date",
-    ])}
-    loaded={loaded.notifications}
-  />
-)}
+          <NotificationsSection
+            notifications={searchItems(notifications, [
+              "notice_title",
+              "notice_text",
+              "notice_date",
+            ])}
+            loaded={loaded.notifications}
+          />
+        )}
 
-{activeTab === "functions" && (
-  <FunctionsSection
-    functionsData={searchItems(functionsData, [
-      "function_name",
-      "description",
-    ])}
-  />
-)}
+        {activeTab === "functions" && (
+          <FunctionsSection
+            functionsData={searchItems(functionsData, [
+              "function_name",
+              "description",
+            ])}
+          />
+        )}
 
-{activeTab === "tours" && (
-  <ToursSection
-    toursData={searchItems(toursData, [
-      "tour_name",
-      "destination",
-    ])}
-  />
-)}
+        {activeTab === "tours" && (
+          <ToursSection
+            toursData={searchItems(toursData, [
+              "tour_name",
+              "destination",
+            ])}
+          />
+        )}
 
-{activeTab === "classTeachers" && (
-  <ClassTeachersSection
-    classTeachers={searchItems(classTeachers, [
-      "teacher_name",
-      "class_name",
-    ])}
-  />
-)}
+        {activeTab === "classTeachers" && (
+          <ClassTeachersSection
+            classTeachers={searchItems(classTeachers, [
+              "teacher_name",
+              "class_name",
+            ])}
+          />
+        )}
       </div>
     </div>
+  </>
   );
 }

@@ -693,7 +693,6 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 .progress-summary-card strong {
   font-size: 18px;
   color: #f8fafc; /* White text */
-}
 
 .progress-table-scroll {
   width: 100%;
@@ -938,22 +937,25 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 }
 
 .mic-btn {
-  width: 44px !important;
-  height: 44px !important;
-  background-color: #1f2937 !important; /* Dark background to match speaker */
-  color: #cbd5e1 !important; /* Light icon */
-  border: 1px solid #374151 !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  transition: all 0.25s ease !important;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid #374151; /* Dark border */
+  background: #1f2937; /* Dark background to match speaker */
+  color: #cbd5e1; /* Light icon */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
 }
 
 .mic-btn:hover {
-  background-color: #374151 !important;
-  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.03);
+  background: #374151; /* Lighter dark-gray on hover */
+  color: #f8fafc;
 }
 
 .mic-btn:active {
@@ -1037,55 +1039,50 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
    Dropdown
 =========================== */
 
-.language-wrapper {
-  position: relative !important;
-  display: inline-block !important;
-}
-
 .language-dropdown {
-  position: absolute !important;
-  top: 100% !important;
-  right: 0 !important;
-  width: 150px !important;
-  background-color: #1f2937 !important;
-  border: 1px solid #374151 !important;
-  border-radius: 12px !important;
-  display: flex !important;
-  flex-direction: column !important; /* FORCES VERTICAL STACKING */
-  padding: 0 !important;
-  margin-top: 8px !important;
-  overflow: hidden !important;
-  z-index: 99999 !important;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 160px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 9999;
+  display: block !important; /* Forces block layout instead of flex */
+  padding: 0;
+  margin-top: 8px;
+  overflow: hidden;
 }
 
 .language-item {
-  display: block !important; /* FORCES NEW LINE */
-  width: 100% !important;
-  box-sizing: border-box !important;
-  padding: 12px 16px !important;
-  background-color: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #374151 !important;
-  color: #cbd5e1 !important;
-  text-align: left !important;
-  cursor: pointer !important;
-  font-size: 14px !important;
+  display: block !important; /* Forces elements to stack on new lines */
+  width: 100%;
+  padding: 12px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #374151;
+  color: #cbd5e1;
+  text-align: left;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 .language-item:hover {
-  background-color: #374151 !important;
-  color: #ffffff !important;
+  background: #374151;
+  color: #ffffff;
 }
 
 .language-item.selected {
-  background: #1e3a8a !important; 
-  color: #60a5fa !important; 
-  font-weight: 600 !important;
+  background: #1e3a8a; /* Deep blue for selected language */
+  color: #60a5fa; /* Light blue text */
+  font-weight: 600;
 }
 
 /* Divider */
+
 .language-item:last-child {
-  border-bottom: none !important;
+  border-bottom: none;
 }
 
 /* Animation */

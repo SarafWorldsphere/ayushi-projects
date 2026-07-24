@@ -36,6 +36,7 @@ body {
 .main-content {
   flex: 1;
   padding: 28px;
+  overflow-y: auto;
   min-width: 0;
 }
 
@@ -46,21 +47,16 @@ body {
 
 .sidebar {
   width: 270px;
-  background: #111827;
+  background: #111827; /* Darker navy for sidebar */
   border-right: 1px solid #1f2937;
   color: white;
   padding: 22px 18px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  /* Removed sticky positioning and 100vh height */
-  min-height: 100vh;
-  height: 100%; 
-}
-
-/* ADD THIS BLOCK to hide the ugly scrollbar but keep scrolling functionality */
-.sidebar::-webkit-scrollbar {
-  display: none;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
 
 .brand-box {
@@ -177,14 +173,6 @@ body {
   min-height: 54px; /* Fixed height so it's not too huge */
 }
 
-.search-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #1f2937;
-  flex-shrink: 0;
-}
-
 .search-input {
   border: none;
   outline: none;
@@ -195,8 +183,12 @@ body {
   font-weight: 500;
 }
 
-.search-input::placeholder {
-  color: #9ca3af; /* Light gray placeholder */
+.search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2937;
+  flex-shrink: 0;
 }
 
 .search-actions {
@@ -371,6 +363,20 @@ table {
   min-width: 700px;
 }
 
+.card,
+.page-card {
+  background: #1e293b; /* Changed from white */
+  border-radius: 22px;
+  padding: 24px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  overflow-x: hidden;
+  border: 1px solid #334155;
+  color: #f8fafc; /* Ensure text is white */
+}
+2. Update Section 9 (Table Styles)
+Find 9. TABLE STYLES and update the table backgrounds, borders, and hover states so they aren't glaringly white:
+
+CSS
 thead {
   background: #334155; /* Dark header background */
 }
@@ -496,21 +502,12 @@ tbody tr:hover {
   flex-wrap: wrap;
 }
 
-.student-section-tabs button {
-  padding: 12px 22px;
-  border-radius: 999px;
-  border: 1px solid #334155;
-  background: #1e293b; /* Dark tab background */
-  color: #cbd5e1;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
+
 
 .student-section-tabs button:hover {
-  background: #334155;
-  color: #f8fafc;
+  background: #f8fafc;
+  color: #2563eb;
+  transform: translateY(-1px);
 }
 
 .active-student-tab {
@@ -527,7 +524,7 @@ tbody tr:hover {
 
 .progress-subtitle {
   margin: 18px 0;
-  color: #f8fafc; /* Changed to white */
+  color: #0f172a;
 }
 
 .progress-breadcrumb {
@@ -560,18 +557,18 @@ tbody tr:hover {
 
 .progress-class-card {
   padding: 28px;
-  border: 1px solid #334155;
-  background: #1e293b; /* Dark card */
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
   border-radius: 20px;
   font-size: 20px;
   font-weight: 800;
-  color: #f8fafc; /* White text */
+  color: #0f172a;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
 }
 
 .progress-class-card:hover {
-  border-color: #2563eb;
+  color: #2563eb;
   transform: translateY(-2px);
 }
 
@@ -626,11 +623,11 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 }
 
 .progress-student-card-small {
-  background: #1e293b; /* Dark card */
-  border: 1px solid #334155;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 18px;
   padding: 20px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -640,7 +637,7 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 .progress-student-card-small h3 {
   margin: 0 0 6px;
   font-size: 19px;
-  color: #f8fafc; /* White text */
+  color: #0f172a;
 }
 
 .progress-student-card-small p {
@@ -676,23 +673,23 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 }
 
 .progress-summary-card {
-  background: #1e293b; /* Dark card */
-  border: 1px solid #334155;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
   padding: 18px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
 }
 
 .progress-summary-card span {
   display: block;
-  color: #94a3b8; /* Lighter gray */
+  color: #64748b;
   font-size: 13px;
   margin-bottom: 8px;
 }
 
 .progress-summary-card strong {
   font-size: 18px;
-  color: #f8fafc; /* White text */
+  color: #0f172a;
 }
 
 .progress-table-scroll {
@@ -727,11 +724,11 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 }
 
 .loading-text {
-  background: #1e293b; /* Dark background */
+  background: white;
   border-radius: 10px;
   padding: 14px 16px;
   margin-bottom: 16px;
-  color: #cbd5e1; /* Light text */
+  color: #475569;
 }
 
 
@@ -833,9 +830,9 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 10px;
-  background: #1e293b; /* Dark background */
-  color: #ef4444; /* Keep the red text for logout */
-  border: 1px solid #334155;
+  background: #fff;
+  color: red;
+  border: none;
   cursor: pointer;
   font-weight: 600;
 }
@@ -854,22 +851,22 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 
 .modal-box {
   width: 420px;
-  background: #1e293b; /* Dark modal */
+  background: #fff;
   border-radius: 18px;
   padding: 28px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
 }
 
 .modal-title {
   font-size: 30px;
   font-weight: 700;
-  color: #f8fafc; /* White text */
+  color: #0f172a;
   margin-bottom: 12px;
 }
 
 .modal-text {
   font-size: 16px;
-  color: #cbd5e1; /* Light gray text */
+  color: #64748b;
   margin-bottom: 24px;
 }
 
@@ -881,16 +878,15 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 
 .modal-cancel-btn {
   padding: 10px 18px;
-  border: 1px solid #475569;
+  border: 1px solid #d1d5db;
   border-radius: 10px;
-  background: #334155; /* Dark gray button */
-  color: white;
+  background: #fff;
   cursor: pointer;
   font-weight: 600;
 }
 
 .modal-cancel-btn:hover {
-  background: #475569;
+  background: #f3f4f6;
 }
 
 .modal-logout-btn {
@@ -915,22 +911,23 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid #374151;
-  background: #1f2937; /* Dark background */
-  color: #cbd5e1; /* Light icon */
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #64748b;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
   transition: all 0.25s ease;
   flex-shrink: 0;
 }
 
 .speak-btn:hover {
   transform: translateY(-1px) scale(1.03);
-  background: #374151;
-  color: #f8fafc;
+  background: #f8fafc;
+  color: #0f172a;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
 }
 
 .speak-btn:active {
@@ -938,22 +935,24 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 }
 
 .mic-btn {
-  width: 44px !important;
-  height: 44px !important;
-  background-color: #1f2937 !important; /* Dark background to match speaker */
-  color: #cbd5e1 !important; /* Light icon */
-  border: 1px solid #374151 !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  transition: all 0.25s ease !important;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, #1d4ed8, #1e3a8a);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(29, 78, 216, 0.28);
+  transition: all 0.25s ease;
+  flex-shrink: 0;
 }
 
 .mic-btn:hover {
-  background-color: #374151 !important;
-  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.03);
+  box-shadow: 0 10px 22px rgba(29, 78, 216, 0.35);
 }
 
 .mic-btn:active {
@@ -961,10 +960,8 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
 }
 
 .mic-btn.active {
-  background: #2563eb; /* Turns blue when actively recording */
-  color: white;
-  border-color: #2563eb;
   animation: pulseMic 1s infinite;
+  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.12);
 }
 
 @keyframes pulseMic {
@@ -1037,55 +1034,63 @@ button.progress-class-card.active-progress-class-card .progress-class-count {
    Dropdown
 =========================== */
 
-.language-wrapper {
-  position: relative !important;
-  display: inline-block !important;
+.language-dropdown{
+  position:absolute;
+  top:52px;
+  right:0;
+
+  width:220px;
+
+  background:#fff;
+
+  border-radius:18px;
+
+  border:1px solid #e5e7eb;
+
+  box-shadow:
+      0 10px 30px rgba(0,0,0,.12);
+
+  overflow:hidden;
+
+  animation:popup .18s ease;
+
+  z-index:9999;
 }
 
-.language-dropdown {
-  position: absolute !important;
-  top: 100% !important;
-  right: 0 !important;
-  width: 150px !important;
-  background-color: #1f2937 !important;
-  border: 1px solid #374151 !important;
-  border-radius: 12px !important;
-  display: flex !important;
-  flex-direction: column !important; /* FORCES VERTICAL STACKING */
-  padding: 0 !important;
-  margin-top: 8px !important;
-  overflow: hidden !important;
-  z-index: 99999 !important;
+.language-item{
+  width:100%;
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:14px 18px;
+
+  border:none;
+  background:#fff;
+
+  cursor:pointer;
+
+  font-size:15px;
+  font-weight:500;
+
+  transition:.2s;
 }
 
-.language-item {
-  display: block !important; /* FORCES NEW LINE */
-  width: 100% !important;
-  box-sizing: border-box !important;
-  padding: 12px 16px !important;
-  background-color: transparent !important;
-  border: none !important;
-  border-bottom: 1px solid #374151 !important;
-  color: #cbd5e1 !important;
-  text-align: left !important;
-  cursor: pointer !important;
-  font-size: 14px !important;
+.language-item:hover{
+  background:#f3f4f6;
 }
 
-.language-item:hover {
-  background-color: #374151 !important;
-  color: #ffffff !important;
-}
-
-.language-item.selected {
-  background: #1e3a8a !important; 
-  color: #60a5fa !important; 
-  font-weight: 600 !important;
+.language-item.selected{
+  background:#eff6ff;
+  color:#2563eb;
+  font-weight:600;
 }
 
 /* Divider */
-.language-item:last-child {
-  border-bottom: none !important;
+
+.language-item:not(:last-child){
+  border-bottom:1px solid #f1f5f9;
 }
 
 /* Animation */

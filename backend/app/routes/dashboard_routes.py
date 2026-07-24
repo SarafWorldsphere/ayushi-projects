@@ -63,10 +63,10 @@ headmaster AS (
     LIMIT 1
 ),
 notifications AS (
-    SELECT COUNT(*) AS unread_count
-    FROM dem_notice_board
-    WHERE is_read = FALSE
-)
+        SELECT COUNT(*) AS unread_count
+        FROM dem_notice_board
+        WHERE record_status = 'Active'
+    )
 
 SELECT
     (SELECT row_to_json(summary) FROM summary) AS summary,

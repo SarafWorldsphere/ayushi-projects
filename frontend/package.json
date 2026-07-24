@@ -1,11 +1,11 @@
 {
-  "name": "dem-dashboard",
+  "name": "demo-headmaster-dashboard",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 7005",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 7005",
     "lint": "eslint"
   },
   "dependencies": {
@@ -22,3 +22,4 @@
     "eslint-config-next": "16.2.4"
   }
 }
+
