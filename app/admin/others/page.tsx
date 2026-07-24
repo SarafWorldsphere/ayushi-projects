@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Search, X, Bell } from 'lucide-react';
+import { Plus, Pencil, Search, X, Bell, Mic, Volume2, Globe } from 'lucide-react';
 
 interface Notice {
   id: string;
@@ -144,7 +144,68 @@ export default function OthersPage() {
           No notices found
         </div>
       )}
+      {/* --- START OF AI AUDIO HUB --- */}
+      <div className="mt-16 mb-8">
+        <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <Globe className="w-8 h-8 text-purple-400" />
+          AI Audio & Translation Hub
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          {/* 1. Text-to-Voice Card */}
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-blue-500/20 rounded-lg"><Volume2 className="text-blue-400 w-6 h-6"/></div>
+              <h3 className="text-xl font-semibold text-white">Text to Voice</h3>
+            </div>
+            <textarea 
+              className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white placeholder-white/40 focus:outline-none focus:border-blue-500 mb-4 resize-none" 
+              rows={3} 
+              placeholder="Enter text to convert to speech..."
+            ></textarea>
+            <button className="w-full py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+              Generate Audio
+            </button>
+          </div>
 
+          {/* 2. Voice-to-Text Card */}
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-emerald-500/20 rounded-lg"><Mic className="text-emerald-400 w-6 h-6"/></div>
+              <h3 className="text-xl font-semibold text-white">Voice to Text</h3>
+            </div>
+            <div className="border-2 border-dashed border-white/20 rounded-xl p-5 text-center mb-4 text-white/40 hover:border-emerald-500/50 hover:bg-white/5 transition-all cursor-pointer">
+              Click to Upload Audio File
+            </div>
+            <button className="w-full py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+              Transcribe Audio
+            </button>
+          </div>
+
+          {/* 3. Audio Translator Card */}
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-white/20 transition-all">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-purple-500/20 rounded-lg"><Globe className="text-purple-400 w-6 h-6"/></div>
+              <h3 className="text-xl font-semibold text-white">Audio Translator</h3>
+            </div>
+            <select className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white focus:outline-none focus:border-purple-500 mb-4">
+              <option value="English" className="text-black">Translate to English</option>
+              <option value="Hindi" className="text-black">Translate to Hindi</option>
+              <option value="Marathi" className="text-black">Translate to Marathi</option>
+              <option value="Telugu" className="text-black">Translate to Telugu</option>
+            </select>
+            <div className="border-2 border-dashed border-white/20 rounded-xl p-2.5 text-center mb-4 text-white/40 hover:border-purple-500/50 hover:bg-white/5 transition-all cursor-pointer">
+              Upload Audio
+            </div>
+            <button className="w-full py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all">
+              Translate Audio
+            </button>
+          </div>
+
+        </div>
+      </div>
+      {/* --- END OF AI AUDIO HUB --- */}
       <AnimatePresence>
         {isModalOpen && (
           <motion.div

@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  allowedDevOrigins: ['16.112.236.67'], // <-- Added your IP right here
-  
-  // Ignore warnings from jsonwebtoken (Node.js APIs not available in Edge)
+  allowedDevOrigins: ['16.112.236.67'],
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -16,8 +14,6 @@ const nextConfig = {
     }
     return config;
   },
-  
-  // Force dynamic rendering for pages that use client-side hooks
   staticPageGenerationTimeout: 120,
 };
 

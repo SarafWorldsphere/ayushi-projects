@@ -15,9 +15,14 @@ interface Student {
   class: string;
   section: string;
   rollNo: string;
-  parentName: string;
-  parentPhone: string;
-  parentEmail: string;
+  fatherName: string;
+  fatherPhone: string;
+  fatherEmail: string;
+  fatherPhoto?: string; 
+  motherName: string;
+  motherPhone: string;
+  motherEmail: string;
+  motherPhoto?: string;
   contact: string;
   email: string;
   guardianName: string;
@@ -38,9 +43,14 @@ export default function StudentsPage() {
     class: '',
     section: '',
     rollNo: '',
-    parentName: '',
-    parentPhone: '',
-    parentEmail: '',
+    fatherName: '',
+    fatherPhone: '',
+    fatherEmail: '',
+    fatherPhoto: null as File | null,
+    motherName: '',
+    motherPhone: '',
+    motherEmail: '',
+    motherPhoto: null as File | null,
     contact: '',
     email: '',
     guardianName: '',
@@ -71,28 +81,94 @@ export default function StudentsPage() {
     return email.toLowerCase().endsWith('@gmail.com');
   };
 
+const uploadToS3 = async (file: File) => {
+    try {
+      // 1. Ask our Next.js backend for a secure S3 Pre-Signed URL
+      const urlRes = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, fileType: file.type }),
+      });
+      
+      if (!urlRes.ok) throw new Error('Failed to get upload URL');
+      const { uploadUrl, fileKey } = await urlRes.json();
+
+      // 2. Upload the file DIRECTLY to AWS S3 using the Pre-Signed URL
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
+
+      if (!uploadRes.ok) throw new Error('S3 Direct Upload failed');
+
+      // 3. Return the key to save in your DB
+      return fileKey;
+    } catch (error) {
+      console.error('Error in uploadToS3:', error);
+      throw error;
+    }
+  };
+
   const handleAdd = async () => {
     if (!formData.name) {
       alert('Please fill Student Name');
       return;
     }
-    
     if (formData.email && !validateEmail(formData.email)) {
       alert('Student Email must end with @gmail.com');
       return;
     }
-    
-    if (formData.parentEmail && !validateEmail(formData.parentEmail)) {
-      alert('Parent Email must end with @gmail.com');
-      return;
+    if (formData.fatherEmail && !validateEmail(formData.fatherEmail)) {
+       alert('Father Email must end with @gmail.com');
+       return;
     }
-    
+    if (formData.motherEmail && !validateEmail(formData.motherEmail)) {
+       alert('Mother Email must end with @gmail.com');
+       return;
+    }
+
     try {
+      let fatherPhotoKey = '';
+      let motherPhotoKey = '';
+      
+      if (formData.fatherPhoto) {
+        fatherPhotoKey = await uploadToS3(formData.fatherPhoto);
+      }
+      if (formData.motherPhoto) {
+        motherPhotoKey = await uploadToS3(formData.motherPhoto);
+      }
+
+      // Use FormData so Port 7003 can read it properly
+      const submitData = new FormData();
+      submitData.append('admissionNo', formData.admissionNo);
+      submitData.append('name', formData.name);
+      submitData.append('class_id', formData.class); // using class_id for DB!
+      submitData.append('section', formData.section);
+      submitData.append('rollNo', formData.rollNo);
+      submitData.append('contact', formData.contact);
+      submitData.append('email', formData.email);
+      submitData.append('guardianName', formData.guardianName);
+      submitData.append('guardianPhone', formData.guardianPhone);
+      submitData.append('status', 'active');
+      submitData.append('fatherName', formData.fatherName);
+      submitData.append('fatherPhone', formData.fatherPhone);
+      submitData.append('fatherEmail', formData.fatherEmail);
+      submitData.append('motherName', formData.motherName);
+      submitData.append('motherPhone', formData.motherPhone);
+      submitData.append('motherEmail', formData.motherEmail);
+
+      // Only append photos if they were successfully uploaded
+      if (fatherPhotoKey) submitData.append('fatherPhoto', fatherPhotoKey);
+      if (motherPhotoKey) submitData.append('motherPhoto', motherPhotoKey);
+
       const response = await fetch('/api/students', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, status: 'active' })
+        // DO NOT set 'Content-Type' header here. 
+        // The browser sets it automatically to 'multipart/form-data'
+        body: submitData
       });
+
       const data = await response.json();
       if (data.success) {
         await fetchStudents();
@@ -106,15 +182,50 @@ export default function StudentsPage() {
       alert('Error adding student');
     }
   };
-
+ 
   const handleModify = async () => {
     if (selectedStudent) {
       try {
+        let fatherPhotoKey = '';
+        let motherPhotoKey = '';
+        
+        // Only upload if a new file was actually selected
+        if (formData.fatherPhoto) {
+          fatherPhotoKey = await uploadToS3(formData.fatherPhoto);
+        }
+        if (formData.motherPhoto) {
+          motherPhotoKey = await uploadToS3(formData.motherPhoto);
+        }
+
+        // Use FormData so Port 7003 can read it properly
+        const submitData = new FormData();
+        submitData.append('id', selectedStudent.id);
+        submitData.append('admissionNo', formData.admissionNo);
+        submitData.append('name', formData.name);
+        submitData.append('class_id', formData.class); // using class_id for DB!
+        submitData.append('section', formData.section);
+        submitData.append('rollNo', formData.rollNo);
+        submitData.append('contact', formData.contact);
+        submitData.append('email', formData.email);
+        submitData.append('guardianName', formData.guardianName);
+        submitData.append('guardianPhone', formData.guardianPhone);
+        submitData.append('fatherName', formData.fatherName);
+        submitData.append('fatherPhone', formData.fatherPhone);
+        submitData.append('fatherEmail', formData.fatherEmail);
+        submitData.append('motherName', formData.motherName);
+        submitData.append('motherPhone', formData.motherPhone);
+        submitData.append('motherEmail', formData.motherEmail);
+
+        // Only append photos if new ones were successfully uploaded
+        if (fatherPhotoKey) submitData.append('fatherPhoto', fatherPhotoKey);
+        if (motherPhotoKey) submitData.append('motherPhoto', motherPhotoKey);
+
         const response = await fetch(`/api/students/${selectedStudent.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          // DO NOT set 'Content-Type' header here.
+          body: submitData,
         });
+
         const data = await response.json();
         if (data.success) {
           await fetchStudents();
@@ -158,12 +269,13 @@ export default function StudentsPage() {
     }
   };
 
-  const resetForm = () => {
+  function resetForm() {
     setFormData({
       admissionNo: '', name: '', class: '', section: '', rollNo: '',
-      parentName: '', parentPhone: '', parentEmail: '',
+      fatherName: '', fatherPhone: '', fatherEmail: '', fatherPhoto: null,
+      motherName: '', motherPhone: '', motherEmail: '', motherPhoto: null,
       contact: '', email: '', guardianName: '', guardianPhone: ''
-    });
+  });
     setSelectedStudent(null);
   };
 
@@ -177,9 +289,14 @@ export default function StudentsPage() {
         class: student.class || '',
         section: student.section || '',
         rollNo: student.rollNo || '',
-        parentName: student.parentName || '',
-        parentPhone: student.parentPhone || '',
-        parentEmail: student.parentEmail || '',
+        fatherName: student.fatherName || '',
+        fatherPhone: student.fatherPhone || '',
+        fatherEmail: student.fatherEmail || '',
+        fatherPhoto: null, 
+        motherName: student.motherName || '',
+        motherPhone: student.motherPhone || '',
+        motherEmail: student.motherEmail || '',
+        motherPhoto: null,
         contact: student.contact || '',
         email: student.email || '',
         guardianName: student.guardianName || '',
@@ -194,7 +311,8 @@ export default function StudentsPage() {
     s.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (s.class?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
     (s.section?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (s.parentName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    (s.fatherName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (s.motherName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   );
 
   const stats = [
@@ -218,7 +336,7 @@ export default function StudentsPage() {
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {stats.map((stat, idx) => (
+        {stats?.map((stat, idx) => (
           <div key={idx} className={`bg-gradient-to-r ${stat.color} rounded-2xl p-6 shadow-xl`}>
             <div className="flex items-center justify-between">
               <div><p className="text-white/80 text-sm">{stat.label}</p><p className="text-white text-4xl font-bold mt-2">{stat.value}</p></div>
@@ -260,9 +378,12 @@ export default function StudentsPage() {
               <th className="px-4 py-4 text-left text-white">Class</th>
               <th className="px-4 py-4 text-left text-white">Section</th>
               <th className="px-4 py-4 text-left text-white">Roll No</th>
-              <th className="px-4 py-4 text-left text-white">Parent Name</th>
-              <th className="px-4 py-4 text-left text-white">Parent Phone</th>
-              <th className="px-4 py-4 text-left text-white">Parent Email</th>
+              <th className="px-4 py-4 text-left text-white">Father Name</th>
+              <th className="px-4 py-4 text-left text-white">Father Phone</th>
+              <th className="px-4 py-4 text-left text-white">Father Photo</th>
+              <th className="px-4 py-4 text-left text-white">Mother Name</th>
+              <th className="px-4 py-4 text-left text-white">Mother Phone</th>
+              <th className="px-4 py-4 text-left text-white">Mother Photo</th>
               <th className="px-4 py-4 text-left text-white">Student Contact</th>
               <th className="px-4 py-4 text-left text-white">Student Email</th>
               <th className="px-4 py-4 text-left text-white">Guardian Name</th>
@@ -272,7 +393,7 @@ export default function StudentsPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredStudents.map((student) => (
+            {filteredStudents?.map((student) => (
               <tr key={student.id} className="border-t border-white/10 hover:bg-white/5">
                 <td className="px-4 py-4 text-white/80">{student.id}</td>
                 <td className="px-4 py-4 text-white/80">{student.admissionNo || '—'}</td>
@@ -280,9 +401,24 @@ export default function StudentsPage() {
                 <td className="px-4 py-4 text-white/80">{student.class || '—'}</td>
                 <td className="px-4 py-4 text-white/80">{student.section || '—'}</td>
                 <td className="px-4 py-4 text-white/80">{student.rollNo || '—'}</td>
-                <td className="px-4 py-4 text-white/80">{student.parentName || '—'}</td>
-                <td className="px-4 py-4 text-white/80">{student.parentPhone || '—'}</td>
-                <td className="px-4 py-4 text-white/80">{student.parentEmail || '—'}</td>
+                <td className="px-4 py-4 text-white/80">{student.fatherName || '-'}</td>
+                <td className="px-4 py-4 text-white/80">{student.fatherPhone || '-'}</td>
+                <td className="px-4 py-4 text-white/80">
+                  {student.fatherPhoto ? (
+                    <img src={student.fatherPhoto.startsWith('http') ? student.fatherPhoto : `/api/photo?key=${student.fatherPhoto}`} alt="Father" className="w-10 h-10 rounded-full object-cover border border-white/20" />
+                  ) : (
+                    '—'
+                  )}
+                </td>
+                <td className="px-4 py-4 text-white/80">{student.motherName || '-'}</td>
+                <td className="px-4 py-4 text-white/80">{student.motherPhone || '-'}</td>
+                <td className="px-4 py-4 text-white/80">
+                  {student.motherPhoto ? (
+                    <img src={student.motherPhoto.startsWith('http') ? student.motherPhoto : `/api/photo?key=${student.motherPhoto}`} alt="Mother" className="w-10 h-10 rounded-full object-cover border border-white/20" />
+                  ) : (
+                    '—'
+                  )} 
+                </td>
                 <td className="px-4 py-4 text-white/80">{student.contact || '—'}</td>
                 <td className="px-4 py-4 text-white/80">{student.email || '—'}</td>
                 <td className="px-4 py-4 text-white/80">{student.guardianName || '—'}</td>
@@ -307,12 +443,32 @@ export default function StudentsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input type="text" placeholder="Admission Number" value={formData.admissionNo} onChange={(e) => setFormData({...formData, admissionNo: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
                 <input type="text" placeholder="Student Name *" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
-                <input type="text" placeholder="Class" value={formData.class} onChange={(e) => setFormData({...formData, class: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
+                <select
+                   value={formData.class}
+                   onChange={(e) => setFormData({...formData, class: e.target.value})}
+                   className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none"
+                >
+                   <option value="" style={{ background: '#1e293b', color: 'white' }}>Select a Class...</option>
+                   <option value="8" style={{ background: '#1e293b', color: 'white' }}>8th Grade</option>
+                   <option value="7" style={{ background: '#1e293b', color: 'white' }}>9th Grade</option>
+                   <option value="5" style={{ background: '#1e293b', color: 'white' }}>10th Grade</option>
+                </select>
                 <input type="text" placeholder="Section" value={formData.section} onChange={(e) => setFormData({...formData, section: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
                 <input type="text" placeholder="Roll Number" value={formData.rollNo} onChange={(e) => setFormData({...formData, rollNo: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
-                <input type="text" placeholder="Parent Name" value={formData.parentName} onChange={(e) => setFormData({...formData, parentName: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
-                <input type="tel" placeholder="Parent Phone" value={formData.parentPhone} onChange={(e) => setFormData({...formData, parentPhone: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
-                <input type="email" placeholder="Parent Email (must end with @gmail.com)" value={formData.parentEmail} onChange={(e) => setFormData({...formData, parentEmail: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
+                <input type="text" placeholder="Father Name" value={formData.fatherName} onChange={(e) => setFormData({...formData, fatherName: e.target.value})} className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
+                <input type="tel" placeholder="Father Phone" value={formData.fatherPhone} onChange={(e) => setFormData({...formData, fatherPhone: e.target.value})} className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
+                <input type="email" placeholder="Father Email" value={formData.fatherEmail} onChange={(e) => setFormData({...formData, fatherEmail: e.target.value})} className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
+                <div className="flex flex-col justify-center">
+                  <label className="text-white/60 text-xs mb-1 px-1">Upload Father Photo</label>
+                  <input type="file" accept="image/*" onChange={(e) => setFormData({...formData, fatherPhoto: e.target.files?.[0] || null})} className="text-sm text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-500 file:text-white" />
+                </div>
+                <input type="text" placeholder="Mother Name" value={formData.motherName} onChange={(e) => setFormData({...formData, motherName: e.target.value})} className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
+                <input type="tel" placeholder="Mother Phone" value={formData.motherPhone} onChange={(e) => setFormData({...formData, motherPhone: e.target.value})} className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
+                <input type="email" placeholder="Mother Email" value={formData.motherEmail} onChange={(e) => setFormData({...formData, motherEmail: e.target.value})} className="px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
+                <div className="flex flex-col justify-center">
+                 <label className="text-white/60 text-xs mb-1 px-1">Upload Mother Photo</label>
+                 <input type="file" accept="image/*" onChange={(e) => setFormData({...formData, motherPhoto: e.target.files?.[0] || null})} className="text-sm text-white/70 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-blue-500 file:text-white" />
+                </div>                
                 <input type="tel" placeholder="Student Contact" value={formData.contact} onChange={(e) => setFormData({...formData, contact: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
                 <input type="email" placeholder="Student Email (must end with @gmail.com)" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
                 <input type="text" placeholder="Guardian Name" value={formData.guardianName} onChange={(e) => setFormData({...formData, guardianName: e.target.value})} className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white" />
@@ -328,7 +484,8 @@ export default function StudentsPage() {
             </motion.div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>  
     </div>
   );
 }
+

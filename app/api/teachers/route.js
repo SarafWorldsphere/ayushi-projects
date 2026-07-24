@@ -25,14 +25,14 @@ export async function GET(request) {
         subject_name as subject,
         NULL as qualification,       -- DB doesn't have this column
         class_id as classId,
-        section as section1,         -- Mapped to the only section column
+        section_1 as section1,         -- Mapped to the only section column
         NULL as section2,            -- DB doesn't have this column
         role as role,
-        mobile_no as contact,        -- Mapped to mobile_no
+        phone as contact,        -- Mapped to mobile_no
         email_id as email,
         '' as isClassTeacher,        -- DB doesn't have this column
         NULL as subjects,            -- DB doesn't have this column
-        CASE WHEN record_status = 'Active' THEN 'active' ELSE 'inactive' END as status
+        CASE WHEN is_active = true THEN 'active' ELSE 'inactive' END as status
       FROM dem_teacher_master
       ORDER BY teacher_id DESC
       LIMIT 100
@@ -61,12 +61,12 @@ export async function POST(request) {
         full_name,
         subject_name,
         class_id,
-        section,
+        section_1,
         role,
-        mobile_no,
+        phone,
         email_id,
-        created_datetime,
-        record_status
+        created_at,
+        is_active
       )
       VALUES (
         ${name}, 
@@ -77,7 +77,7 @@ export async function POST(request) {
         ${contact || null}, 
         ${validEmail},
         NOW(),
-        ${isActive ? 'Active' : 'Inactive'}
+        ${isActive}
       )
       RETURNING teacher_id as id
     `;

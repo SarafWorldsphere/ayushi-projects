@@ -70,6 +70,54 @@ export default function Navbar() {
           </div>
 
           <div className="hidden xl:flex gap-4 items-center">
+        {/* Full-Page AI Language Translator */}
+        <select
+          className="bg-[#0a0a0f] text-slate-300 border border-white/20 rounded-full px-4 py-2 text-sm hover:border-cyan-500 transition-colors cursor-pointer outline-none mr-2"
+          onChange={async (e) => {
+            const targetLang = e.target.value;
+            if (targetLang === 'English') {
+              window.location.reload();
+              return;
+            }
+            
+            alert(`Translating page to ${targetLang}. This may take a moment...`);
+            
+            try {
+              // Grabbing all visible text on the page
+              const pageText = document.body.innerText;
+              
+              // Sending it to your new backend AI endpoint
+              const response = await fetch("http://16.112.236.67:7004/api/v1/admin/translate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                  target_language: targetLang, 
+                  text: pageText 
+                })
+              });
+              
+              const data = await response.json();
+              
+              // Replacing page content with the AI translation
+              if (data && data.translated_text) {
+                document.body.innerText = data.translated_text;
+              }
+            } catch (err) {
+              console.error("AI Translation failed:", err);
+              alert("Failed to translate page.");
+            }
+          }}
+        >
+          <option value="English">English</option>
+          <option value="Hindi">Hindi</option>
+          <option value="Telugu">Telugu</option>
+          <option value="Tamil">Tamil</option>
+          <option value="Kannada">Kannada</option>
+          <option value="Malayalam">Malayalam</option>
+          <option value="Marathi">Marathi</option>
+          <option value="Gujarati">Gujarati</option>
+          <option value="Punjabi">Punjabi</option>
+        </select>
             {isLoggedIn ? (
               <Link href="/dashboard" className="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white hover:from-cyan-400 hover:to-purple-400 transition-all text-sm font-semibold tracking-wide shadow-lg shadow-cyan-500/20">
                 Go to Dashboard
