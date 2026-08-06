@@ -1,12 +1,10 @@
-
 import { NextResponse } from 'next/server';
 import postgres from 'postgres';
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const dynamic = 'force-dynamic';
 
 // Connect to the database using the URL from your .env file
-const sql = postgres(process.env.DATABASE_URL, { 
+const sql = postgres(process.env.DATABASE_URL, {
   ssl: 'require'
 });
 
@@ -31,7 +29,7 @@ export async function GET(request) {
         class_id as "class",
         section as "section",
         roll_no as "rollNo",
-        parent_name as "fatherName", 
+        parent_name as "fatherName",
         mobile_no as "fatherPhone",
         email_id as "parentEmail",
         mobile_no as "contact",
@@ -48,7 +46,7 @@ export async function GET(request) {
       ORDER BY student_id DESC
       LIMIT 100
     `;
-    
+
     console.log('Returning', students.length, 'students');
     return NextResponse.json({ success: true, students: students });
   } catch (error) {
@@ -57,36 +55,11 @@ export async function GET(request) {
   }
 }
 
-const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
-});
-
-async function uploadFileToS3(file, prefix) {
-  if (!file || typeof file === "string") return null;
-  
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const uniqueName = `${prefix}-${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-
-  const command = new PutObjectCommand({
-    Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Key: uniqueName,
-    Body: buffer,
-    ContentType: file.type,
-  });
-
-  await s3Client.send(command);
-  return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${uniqueName}`;
-}
-
 // POST Route: Add a new student from the dashboard
 export async function POST(request) {
   try {
     const formData = await request.formData();
-    
+
     const admissionNo = formData.get('admissionNo');
     const name = formData.get('name');
     const className = formData.get('class');
@@ -99,19 +72,17 @@ export async function POST(request) {
     const email = formData.get('email');
     const status = formData.get('status');
 
-    // To handle the uploaded files, you extract them like this:
-    const fatherPhoto = formData.get('fatherPhoto'); 
-    const motherPhoto = formData.get('motherPhoto');
-    const fatherPhotoUrl = await uploadFileToS3(fatherPhoto, 'father');
-    const motherPhotoUrl = await uploadFileToS3(motherPhoto, 'mother');
-    
+    // Extract the string URLs sent directly from the frontend
+    const fatherPhotoUrl = formData.get('fatherPhoto');
+    const motherPhotoUrl = formData.get('motherPhoto');
+
     const isActive = status === 'active';
-    
-    // Since the database only has one email and phone column, we prioritize the student's, 
+
+    // Since the database only has one email and phone column, we prioritize the student's,
     // and fall back to the parent's if the student's is missing.
     const finalEmail = validateEmail(email) || validateEmail(parentEmail);
     const finalPhone = contact || parentPhone || null;
-    
+
     const result = await sql`
       INSERT INTO dem_student_master (
         admission_no,
@@ -138,12 +109,12 @@ export async function POST(request) {
         ${finalEmail},
         NOW(),
         ${isActive ? 'Active' : 'Inactive'},
-        ${fatherPhotoUrl},
-        ${motherPhotoUrl}
+        ${fatherPhotoUrl || null},
+        ${motherPhotoUrl || null}
       )
       RETURNING student_id as id
     `;
-    
+
     return NextResponse.json({ success: true, message: 'Student added successfully', student: result[0] });
   } catch (error) {
     console.error('Error inserting student:', error);
