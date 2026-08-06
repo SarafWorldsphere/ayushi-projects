@@ -7,3 +7,6 @@ out/
 *.log
 __pycache__/
 *.py[cod]
+backend/.venv/
+backend/venv/
+*.save
