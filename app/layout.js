@@ -1,4 +1,5 @@
 import "./globals.css";
+import { LanguageProvider } from "../src/context/LanguageContext";
 
 export const metadata = {
   title: "DEM Dashboard",
@@ -8,7 +9,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   );
 }

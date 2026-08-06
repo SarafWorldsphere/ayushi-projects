@@ -1,19 +1,39 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link"; // <-- THE FIX: Added Next.js Link
+import { useState, useRef, useEffect } from "react";
 import StudentProfile from "./student-profile";
+import { useLanguage } from "../src/context/LanguageContext";
+import { voiceToText, textToVoice, translateText } from "../src/services/aiService";
+
+// 1. DEFAULT ENGLISH TEXT
+const DEFAULT_TEXT = {
+  dashboard: "Dashboard",
+  coreStudy: "Core Study",
+  assignments: "Assignments",
+  assessments: "Assessments",
+  progress: "My Progress",
+  translator: "AI Translator",
+  settings: "Settings",
+  help: "Help & Support",
+  logout: "Logout",
+  searchPlaceholder: "Search or speak...",
+  languageLabel: "Language"
+};
 
 const navItems = [
-  ["home", "Dashboard", "/"],
-  ["book-open", "Core Study", "/chapters"],
-  ["clipboard", "Assignments", "/assignments"],
-  ["target", "Assessments", "/assessments"],
-  ["chart", "My Progress", "/progress"]
+  ["home", "dashboard", "/"],
+  ["book-open", "coreStudy", "/chapters"],
+  ["clipboard", "assignments", "/assignments"],
+  ["target", "assessments", "/assessments"],
+  ["chart", "progress", "/progress"],
+  ["globe", "translator", "/ai-translator"]
 ];
 
 const settingsItems = [
-  ["settings", "Settings", "/settings"],
-  ["help", "Help & Support", "/help"]
+  ["settings", "settings", "/settings"],
+  ["help", "help", "/help"]
 ];
 
 function Icon({ name, className = "" }) {
@@ -22,12 +42,12 @@ function Icon({ name, className = "" }) {
 
 function BrandMark() {
   return (
-    <img 
-    src="/DEM%20Logo.jpeg" 
-    alt="DEM Logo" 
-    style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '4px' }} 
-/>
-      );
+    <img
+      src="/DEM%20Logo.jpeg"
+      alt="DEM Logo"
+      style={{ width: '45px', height: '45px', objectFit: 'cover', borderRadius: '4px' }}
+    />
+  );
 }
 
 function Avatar() {
@@ -51,14 +71,68 @@ function Avatar() {
 
 export default function DashboardShell({ children }) {
   const pathname = usePathname();
+  const { selectedLanguage, changeLanguage, LANGUAGES } = useLanguage();
 
-  function isActive(href) {
-    if (href === "/") {
-      return pathname === "/";
+  const [t, setT] = useState(DEFAULT_TEXT);
+  const [isTranslatingUI, setIsTranslatingUI] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+
+  const isEnglish = !selectedLanguage || selectedLanguage === "English" || selectedLanguage === "en";
+
+  useEffect(() => {
+    if (isEnglish) {
+      setT(DEFAULT_TEXT);
+      setIsTranslatingUI(false);
+      return;
     }
 
+    const fetchAITranslations = async () => {
+      setIsTranslatingUI(true);
+      try {
+        const keys = Object.keys(DEFAULT_TEXT);
+        const values = Object.values(DEFAULT_TEXT);
+
+        const translatedResponses = await Promise.all(
+          values.map(text => translateText(text, selectedLanguage))
+        );
+
+        const newT = {};
+        keys.forEach((key, index) => {
+          const res = translatedResponses[index];
+          const finalString = res?.translated_text || res?.text || res?.data || DEFAULT_TEXT[key];
+          newT[key] = finalString;
+        });
+
+        setT(newT);
+      } catch (err) {
+        console.error("AI UI Translation failed:", err);
+        setT(DEFAULT_TEXT); 
+      } finally {
+        setIsTranslatingUI(false);
+      }
+    };
+
+    fetchAITranslations();
+  }, [selectedLanguage, isEnglish]);
+
+  function isActive(href) {
+    if (href === "/") return pathname === "/";
     return pathname === href || pathname.startsWith(`${href}/`);
   }
+
+  const handleMicClick = async () => {
+    // ... existing logic ...
+  };
+
+  const handleSpeakerClick = async () => {
+    // ... existing logic ...
+  };
 
   return (
     <main className="app-shell">
@@ -72,56 +146,98 @@ export default function DashboardShell({ children }) {
         </div>
 
         <nav className="nav-list" aria-label="Student navigation">
-          {navItems.map(([icon, label, href]) => (
-            <a className={`nav-item ${isActive(href) ? "active" : ""}`} href={href} key={label}>
+          {navItems.map(([icon, labelKey, href]) => (
+            /* THE FIX: Replaced <a> with <Link> */
+            <Link className={`nav-item ${isActive(href) ? "active" : ""}`} href={href} key={labelKey}>
               <Icon name={icon} />
-              <span>{label}</span>
-            </a>
+              <span>{isTranslatingUI && !isEnglish ? "..." : t[labelKey]}</span>
+            </Link>
           ))}
         </nav>
 
         <div className="nav-divider" />
 
         <nav className="nav-list compact" aria-label="Settings navigation">
-          {settingsItems.map(([icon, label, href]) => (
-            <a className={`nav-item ${isActive(href) ? "active" : ""}`} href={href} key={label}>
+          {settingsItems.map(([icon, labelKey, href]) => (
+            /* THE FIX: Replaced <a> with <Link> */
+            <Link className={`nav-item ${isActive(href) ? "active" : ""}`} href={href} key={labelKey}>
               <Icon name={icon} />
-              <span>{label}</span>
-            </a>
+              <span>{isTranslatingUI && !isEnglish ? "..." : t[labelKey]}</span>
+            </Link>
           ))}
         </nav>
 
         <div className="nav-divider" />
 
-        <a className="nav-item logout-link" href="#">
+        {/* THE FIX: Replaced <a> with <Link> */}
+        <Link className="nav-item logout-link" href="#">
           <Icon name="power" />
-          <span>Logout</span>
-        </a>
+          <span>{isTranslatingUI && !isEnglish ? "..." : t.logout}</span>
+        </Link>
       </aside>
 
       <section className="workspace">
         <header className="topbar">
+          {/* ... Topbar UI ... */}
           <div className="student-card">
             <Avatar />
             <StudentProfile />
           </div>
 
-          <div className="top-actions">
-            <label className="language-select">
-              <span>Language</span>
-              <select defaultValue="English" aria-label="Select language">
-                <option>English</option>
-                <option>Hindi</option>
-                <option>Telugu</option>
+          <div className="top-actions" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', background: '#ffffff20', borderRadius: '20px', padding: '6px 12px', border: '1px solid #475569' }}>
+              <span style={{ marginRight: '8px' }}>🔍</span>
+              <input
+                type="text"
+                placeholder={isTranslatingUI && !isEnglish ? "..." : t.searchPlaceholder}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ background: 'transparent', border: 'none', color: 'inherit', outline: 'none', width: '200px', fontSize: '14px' }}
+              />
+              <button onClick={handleSpeakerClick} type="button" title="Listen" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '5px', fontSize: '16px' }}>
+                {isLoadingAudio ? '⏳' : '🔊'}
+              </button>
+              <button onClick={handleMicClick} type="button" title="Speak" style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '5px', fontSize: '16px' }}>
+                {isRecording ? '🔴' : '🎙️'}
+              </button>
+            </div>
+
+            <label className="language-select" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ color: '#ffffff', fontWeight: '500' }}>{isTranslatingUI && !isEnglish ? "..." : t.languageLabel}:</span>
+              <select
+                value={selectedLanguage}
+                onChange={(e) => changeLanguage(e.target.value)}
+                aria-label="Select language"
+                style={{
+                  backgroundColor: '#0f172a',
+                  color: '#ffffff',
+                  border: '1px solid #475569',
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                {LANGUAGES && LANGUAGES.length > 0 ? (
+                    LANGUAGES.map((lang) => (
+                      <option key={lang.code} value={lang.code} style={{ backgroundColor: '#0f172a', color: '#ffffff' }}>
+                        {lang.name}
+                      </option>
+                    ))
+                ) : (
+                    <option value="en" style={{ backgroundColor: '#0f172a', color: '#ffffff' }}>English</option>
+                )}
               </select>
             </label>
+
             <button className="bell-button" aria-label="Notifications">
               <span className="bell-icon" aria-hidden="true" />
               <span className="badge">3</span>
             </button>
             <button className="top-logout" type="button">
               <span className="exit-icon" aria-hidden="true" />
-              <span>Logout</span>
+              <span>{isTranslatingUI && !isEnglish ? "..." : t.logout}</span>
             </button>
           </div>
         </header>

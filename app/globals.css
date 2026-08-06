@@ -33,7 +33,7 @@ button {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 285px minmax(0, 1fr);
-  background: #fff;
+  background: #0a1128 !important; 
 }
 
 .sidebar {
@@ -132,7 +132,8 @@ button {
 
 .workspace {
   min-width: 0;
-  background: #fff;
+  overflow-x: hidden;
+  background: #0a1128 !important;
   box-shadow: inset 8px 0 18px rgba(9, 25, 42, 0.08);
 }
 
@@ -1837,6 +1838,21 @@ button {
   display: block;
 }
 
+.globe::before {
+  inset: 2px;
+  border: 3px solid currentColor;
+  border-radius: 50%;
+}
+
+.globe::after {
+  left: 11px;
+  top: 2px;
+  width: 4px;
+  height: 22px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
 .home::before {
   left: 3px;
   top: 10px;
@@ -2327,4 +2343,10 @@ button {
   .accent-line {
     width: 45%;
   }
+}
+
+/* --- MASTER DARK THEME OVERRIDE --- */
+html, body, .app-shell, .workspace, .content-grid, .chapter-screen, .module-page {
+    background-color: #0a1128 !important;
+    background-image: none !important;
 }

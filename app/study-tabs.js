@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link"; // <-- THE FIX: Added Next.js Link
+import { useLanguage } from "../src/context/LanguageContext";
+import { translateText } from "../src/services/aiService";
 
-const studyTabs = [
+// 1. Base English Data
+const ENGLISH_TABS = [
   {
     tone: "green",
     icon: "book-open",
@@ -43,6 +47,7 @@ const studyTabs = [
 ];
 
 function PanelIcon({ name }) {
+  // ... icon svgs ...
   if (name === "book-open") {
     return (
       <svg className="panel-svg" viewBox="0 0 32 32" aria-hidden="true">
@@ -75,24 +80,78 @@ function PanelIcon({ name }) {
 
 export default function StudyTabs() {
   const pathname = usePathname();
-  const activeIndex = studyTabs.findIndex((tab) => tab.rows.some(([, href]) => pathname === href || pathname.startsWith(`${href}/`)));
+  const { selectedLanguage } = useLanguage();
+
+  const [tabs, setTabs] = useState(ENGLISH_TABS);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const activeIndex = tabs.findIndex((tab) => tab.rows.some(([, href]) => pathname === href || pathname.startsWith(`${href}/`)));
   const [openPanel, setOpenPanel] = useState(activeIndex >= 0 ? activeIndex : null);
+
+  const isEnglish = !selectedLanguage || selectedLanguage === "English" || selectedLanguage === "en";
+
+  useEffect(() => {
+    if (isEnglish) {
+      setTabs(ENGLISH_TABS);
+      setIsTranslating(false);
+      return;
+    }
+
+    const fetchTranslations = async () => {
+      setIsTranslating(true);
+      try {
+        const stringsToTranslate = [];
+        ENGLISH_TABS.forEach(tab => {
+          stringsToTranslate.push(tab.title);
+          tab.rows.forEach(row => stringsToTranslate.push(row[0]));
+        });
+
+        const results = await Promise.all(
+          stringsToTranslate.map(text => translateText(text, selectedLanguage))
+        );
+
+        let resultIndex = 0;
+        const translatedTabs = ENGLISH_TABS.map(tab => {
+          const titleRes = results[resultIndex++];
+          const newTitle = titleRes?.translated_text || titleRes?.text || titleRes?.data || tab.title;
+
+          const newRows = tab.rows.map(row => {
+            const rowRes = results[resultIndex++];
+            const newLabel = rowRes?.translated_text || rowRes?.text || rowRes?.data || row[0];
+            return [newLabel, row[1]];
+          });
+
+          return { ...tab, title: newTitle, rows: newRows };
+        });
+
+        setTabs(translatedTabs);
+      } catch (error) {
+        console.error("Tab translation failed:", error);
+        setTabs(ENGLISH_TABS);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    fetchTranslations();
+  }, [selectedLanguage, isEnglish]);
 
   return (
     <section className="content-grid study-tab-strip" aria-label="Study modules">
-      {studyTabs.map((tab, index) => (
-        <article className={`study-panel ${tab.tone} ${openPanel === index ? "" : "collapsed"} ${activeIndex === index ? "active-tab" : ""}`} key={tab.title}>
+      {tabs.map((tab, index) => (
+        <article className={`study-panel ${tab.tone} ${openPanel === index ? "" : "collapsed"} ${activeIndex === index ? "active-tab" : ""}`} key={index}>
           <button className="panel-head" type="button" aria-expanded={openPanel === index} onClick={() => setOpenPanel((current) => (current === index ? null : index))}>
             <PanelIcon name={tab.icon} />
-            <span className="panel-title">{tab.title}</span>
+            <span className="panel-title">{isTranslating && !isEnglish ? "..." : tab.title}</span>
             <span className="chevron" aria-hidden="true" />
           </button>
           <div className="accent-line" />
           <div className="panel-body">
-            {tab.rows.map(([label, href]) => (
-              <a className="study-row" href={href} key={label}>
-                <span>{label}</span>
-              </a>
+            {tab.rows.map(([label, href], rowIndex) => (
+              /* THE FIX: Replaced <a> with <Link> */
+              <Link className="study-row" href={href} key={rowIndex}>
+                <span>{isTranslating && !isEnglish ? "..." : label}</span>
+              </Link>
             ))}
           </div>
         </article>
