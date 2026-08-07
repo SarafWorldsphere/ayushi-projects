@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardShell from "../dashboard-shell";
 import StudyTabs from "../study-tabs";
+import { useLanguage } from "../../src/context/LanguageContext";
+import { translateText } from "../../src/services/aiService";
 
+// Base English Data
 const unitTest = {
   title: "Unit Test",
   subject: "Social Science",
@@ -41,11 +44,61 @@ const focusRows = [
   ["Essay Writing", "66%", "84%", "green"]
 ];
 
-function RingChart({ label = "365", caption = "Total Students" }) {
+// --- TRANSLATION DICTIONARY ---
+const DEFAULT_TEXT = {
+  unitTestBtn: "Unit Test",
+  mockTestBtn: "Mock Test",
+  studentAnalysisBtn: "Student Analysis",
+  teacherRemarkBtn: "Teacher Remark",
+  
+  // Unit Test View
+  evaluatedStatus: "Evaluated",
+  readyStatus: "Ready",
+  totalMarksLabel: "Total Marks:",
+  studentAnswerLabel: "Student Answer",
+  aiEvalBtn: "AI Evaluation",
+  resetBtn: "Reset",
+  aiEvalTitle: "AI Evaluation",
+  chapterLabel: "Chapter",
+  scoreLabel: "Score",
+  statusLabel: "Status",
+  completedStatus: "Completed",
+  pendingStatus: "Pending",
+  aiAnswerLabel: "AI Answer",
+  feedbackLabel: "Feedback",
+  feedbackText: "Your answer is correct and clear. Add points about accountability and peaceful change of government to make it stronger.",
+
+  // Teacher Remark View
+  dashboardTitle: "Dashboard",
+  performanceOverview: "Performance Overview",
+  excellent: "Excellent 40%",
+  good: "Good 30%",
+  average: "Average 20%",
+  needsSupport: "Needs Support 10%",
+  atRiskStudents: "At-Risk Students",
+  topSubjects: "Top Subjects",
+  engagementHeatmap: "Engagement Heatmap",
+  learningProgress: "Learning Progress",
+  growthTrend: "Growth Trend",
+  totalStudents: "Total Students",
+
+  // Student Analysis View
+  studentAssesmentTitle: "Student Self-Assessment: Academic Year 2023-24",
+  finalSubjectPerf: "Final Subject Performance",
+  avgOfTests: "(Average of all Tests)",
+  overallAvg: "Overall Average",
+  testResultTimeline: "Test Result Timeline",
+  detailedTestPerf: "Detailed Test Performance by Subject",
+  studyDistribution: "Study Subject Distribution Heatmap",
+  focusAreaImprov: "Focus Area Improvements",
+  overallGrowthTrend: "Overall Growth Trend"
+};
+
+function RingChart({ label = "365", caption = "Total Students", t, tt }) {
   return (
     <div className="ring-chart">
       <div className="ring-number">{label}</div>
-      <span>{caption}</span>
+      <span>{tt ? tt(caption) : caption}</span>
     </div>
   );
 }
@@ -114,66 +167,66 @@ function Heatmap({ compact = false }) {
   );
 }
 
-function TeacherRemarkView() {
+function TeacherRemarkView({ tt }) {
   return (
     <section className="assessment-dashboard">
       <div className="assessment-dashboard-head">
-        <h2>Dashboard</h2>
+        <h2>{tt("dashboardTitle")}</h2>
         <div className="dashboard-actions"><span>!</span><span>...</span><div className="tiny-avatar">AS</div></div>
       </div>
       <div className="analysis-grid">
         <article className="analysis-card performance-card">
-          <h3>Performance Overview</h3>
+          <h3>{tt("performanceOverview")}</h3>
           <div className="performance-row">
-            <RingChart />
+            <RingChart tt={tt} caption="totalStudents" />
             <div className="legend-list">
-              {["Excellent 40%", "Good 30%", "Average 20%", "Needs Support 10%"].map((item) => <span key={item}>{item}</span>)}
+              {[tt("excellent"), tt("good"), tt("average"), tt("needsSupport")].map((item) => <span key={item}>{item}</span>)}
             </div>
           </div>
         </article>
-        <article className="analysis-card"><h3>At-Risk Students</h3><BarChart /></article>
+        <article className="analysis-card"><h3>{tt("atRiskStudents")}</h3><BarChart /></article>
         <article className="analysis-card">
-          <h3>Top Subjects</h3>
+          <h3>{tt("topSubjects")}</h3>
           <div className="subject-list">{subjectScores.map(([name, score, tone]) => <div className="subject-row" key={name}><i className={tone}>{name[0]}</i><span>{name}</span><strong>{score}</strong></div>)}</div>
         </article>
-        <article className="analysis-card"><h3>Engagement Heatmap</h3><Heatmap /></article>
+        <article className="analysis-card"><h3>{tt("engagementHeatmap")}</h3><Heatmap /></article>
         <article className="analysis-card">
-          <h3>Learning Progress</h3>
+          <h3>{tt("learningProgress")}</h3>
           <div className="learner-list">{learners.map(([name, score, tone]) => <div className="learner-row" key={name}><i className={tone} /><div className="tiny-avatar">{name.split(" ").map((part) => part[0]).join("")}</div><span>{name}</span><MiniBars /><strong>{score}</strong></div>)}</div>
         </article>
-        <article className="analysis-card"><h3>Growth Trend</h3><LineChart labels={["Jan", "Feb", "Mar", "Apr", "May", "Jun"]} values={[40, 210, 190, 340, 260, 420, 660]} /></article>
+        <article className="analysis-card"><h3>{tt("growthTrend")}</h3><LineChart labels={["Jan", "Feb", "Mar", "Apr", "May", "Jun"]} values={[40, 210, 190, 340, 260, 420, 660]} /></article>
       </div>
     </section>
   );
 }
 
-function StudentAnalysisView() {
+function StudentAnalysisView({ tt }) {
   return (
     <section className="assessment-dashboard student-analysis-view">
       <div className="assessment-dashboard-head">
-        <h2>Student Self-Assessment: Academic Year 2023-24</h2>
+        <h2>{tt("studentAssesmentTitle")}</h2>
         <div className="tiny-avatar">AS</div>
       </div>
       <div className="analysis-grid">
         <article className="analysis-card performance-card">
-          <h3>Final Subject Performance</h3>
-          <p>(Average of all Tests)</p>
+          <h3>{tt("finalSubjectPerf")}</h3>
+          <p>{tt("avgOfTests")}</p>
           <div className="performance-row">
-            <RingChart label="88%" caption="Overall Average" />
+            <RingChart label="88%" caption="overallAvg" tt={tt} />
             <div className="legend-list subjects">{["Math", "Physics", "Chemistry", "Biology"].map((item) => <span key={item}>{item}</span>)}</div>
           </div>
         </article>
-        <article className="analysis-card"><h3>Test Result Timeline</h3><LineChart labels={["Quarter 1", "Mid-Term", "Quarter 2", "Final Exam"]} values={[78, 80, 93, 94]} /></article>
+        <article className="analysis-card"><h3>{tt("testResultTimeline")}</h3><LineChart labels={["Quarter 1", "Mid-Term", "Quarter 2", "Final Exam"]} values={[78, 80, 93, 94]} /></article>
         <article className="analysis-card">
-          <h3>Detailed Test Performance by Subject</h3>
+          <h3>{tt("detailedTestPerf")}</h3>
           <div className="test-performance-list">{testRows.map(([name, scores]) => <div className="test-row" key={name}><strong>{name}</strong><span>{scores.join("  |  ")}</span></div>)}</div>
         </article>
-        <article className="analysis-card"><h3>Study Subject Distribution Heatmap</h3><Heatmap compact /></article>
+        <article className="analysis-card"><h3>{tt("studyDistribution")}</h3><Heatmap compact /></article>
         <article className="analysis-card">
-          <h3>Focus Area Improvements</h3>
+          <h3>{tt("focusAreaImprov")}</h3>
           <div className="focus-list">{focusRows.map(([name, before, after, tone]) => <div className="focus-row" key={name}><strong>{name}</strong><div><span style={{ width: before }} /><i className={tone} style={{ width: after }} /></div></div>)}</div>
         </article>
-        <article className="analysis-card"><h3>Overall Growth Trend</h3><LineChart labels={["Quarter 1", "Mid-Term", "Quarter 2", "Final Exam"]} values={[20, 64, 85, 116]} dashed /></article>
+        <article className="analysis-card"><h3>{tt("overallGrowthTrend")}</h3><LineChart labels={["Quarter 1", "Mid-Term", "Quarter 2", "Final Exam"]} values={[20, 64, 85, 116]} dashed /></article>
       </div>
     </section>
   );
@@ -182,6 +235,58 @@ function StudentAnalysisView() {
 export default function AssessmentsPage() {
   const [activeOption, setActiveOption] = useState("unit-test");
   const [showEvaluation, setShowEvaluation] = useState(false);
+
+  // AI Translation Setup
+  const { selectedLanguage } = useLanguage();
+  const [t, setT] = useState(DEFAULT_TEXT);
+  const [translatedData, setTranslatedData] = useState(unitTest);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const isEnglish = !selectedLanguage || selectedLanguage === "English" || selectedLanguage === "en";
+
+  useEffect(() => {
+    if (isEnglish) {
+      setT(DEFAULT_TEXT);
+      setTranslatedData(unitTest);
+      setIsTranslating(false);
+      return;
+    }
+
+    const fetchTranslations = async () => {
+      setIsTranslating(true);
+      try {
+        // 1. Translate standard labels
+        const keys = Object.keys(DEFAULT_TEXT);
+        const values = Object.values(DEFAULT_TEXT);
+        const labelResponses = await Promise.all(values.map(text => translateText(text, selectedLanguage)));
+        const newT = {};
+        keys.forEach((key, index) => {
+          const res = labelResponses[index];
+          newT[key] = res?.translated_text || res?.text || res?.data || DEFAULT_TEXT[key];
+        });
+        setT(newT);
+
+        // 2. Translate Unit Test Data
+        const testKeys = Object.keys(unitTest);
+        const testValues = Object.values(unitTest);
+        const testResponses = await Promise.all(testValues.map(text => translateText(text, selectedLanguage)));
+        const newTestData = {};
+        testKeys.forEach((key, index) => {
+          const res = testResponses[index];
+          newTestData[key] = res?.translated_text || res?.text || res?.data || unitTest[key];
+        });
+        setTranslatedData(newTestData);
+
+      } catch (err) {
+        console.error("Assessments Translation failed:", err);
+        setT(DEFAULT_TEXT);
+        setTranslatedData(unitTest);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    fetchTranslations();
+  }, [selectedLanguage, isEnglish]);
 
   function handleUnitTest() {
     setActiveOption("unit-test");
@@ -193,70 +298,72 @@ export default function AssessmentsPage() {
     setShowEvaluation(true);
   }
 
+  const tt = (key) => isTranslating && !isEnglish ? "..." : t[key];
+
   return (
     <DashboardShell>
       <section className="module-page">
         <StudyTabs />
         <div className="module-content-area assessment-content-area">
           <div className="module-action-grid assessment-option-grid">
-            <button className={`module-action ${activeOption === "unit-test" ? "active" : ""}`} type="button" onClick={handleUnitTest}>Unit Test</button>
-            <button className="module-action" type="button">Mock Test</button>
-            <button className={`module-action ${activeOption === "student-analysis" ? "active" : ""}`} type="button" onClick={() => setActiveOption("student-analysis")}>Student Analysis</button>
-            <button className={`module-action ${activeOption === "teacher-remark" ? "active" : ""}`} type="button" onClick={() => setActiveOption("teacher-remark")}>Teacher Remark</button>
+            <button className={`module-action ${activeOption === "unit-test" ? "active" : ""}`} type="button" onClick={handleUnitTest}>{tt("unitTestBtn")}</button>
+            <button className="module-action" type="button">{tt("mockTestBtn")}</button>
+            <button className={`module-action ${activeOption === "student-analysis" ? "active" : ""}`} type="button" onClick={() => setActiveOption("student-analysis")}>{tt("studentAnalysisBtn")}</button>
+            <button className={`module-action ${activeOption === "teacher-remark" ? "active" : ""}`} type="button" onClick={() => setActiveOption("teacher-remark")}>{tt("teacherRemarkBtn")}</button>
           </div>
 
           {activeOption === "unit-test" && (
             <div className="quiz-layout assessment-layout">
               <article className="module-card purple-module">
                 <div className="card-title-row">
-                  <h2>{unitTest.title}</h2>
-                  <span className={`status-pill ${showEvaluation ? "completed" : "in-progress"}`}>{showEvaluation ? "Evaluated" : "Ready"}</span>
+                  <h2>{isTranslating && !isEnglish ? "..." : translatedData.title}</h2>
+                  <span className={`status-pill ${showEvaluation ? "completed" : "in-progress"}`}>{showEvaluation ? tt("evaluatedStatus") : tt("readyStatus")}</span>
                 </div>
 
                 <div className="meta-row">
-                  <span>{unitTest.subject}</span>
-                  <span>{unitTest.chapter}</span>
-                  <span>Total Marks: 10</span>
+                  <span>{isTranslating && !isEnglish ? "..." : translatedData.subject}</span>
+                  <span>{isTranslating && !isEnglish ? "..." : translatedData.chapter}</span>
+                  <span>{tt("totalMarksLabel")} 10</span>
                 </div>
 
                 <div className="quiz-question-list">
                   <fieldset className="quiz-question">
-                    <legend>1. {unitTest.question}</legend>
+                    <legend>1. {isTranslating && !isEnglish ? "..." : translatedData.question}</legend>
                     <div className="assessment-answer-box">
-                      <span>Student Answer</span>
-                      <p>{unitTest.studentAnswer}</p>
+                      <span>{tt("studentAnswerLabel")}</span>
+                      <p>{isTranslating && !isEnglish ? "..." : translatedData.studentAnswer}</p>
                     </div>
                   </fieldset>
                 </div>
 
                 <div className="quiz-submit-row">
-                  <button className="primary-button" type="button" onClick={handleAiEvaluation}>AI Evaluation</button>
-                  <button className="soft-button" type="button" onClick={handleUnitTest}>Reset</button>
+                  <button className="primary-button" type="button" onClick={handleAiEvaluation}>{tt("aiEvalBtn")}</button>
+                  <button className="soft-button" type="button" onClick={handleUnitTest}>{tt("resetBtn")}</button>
                 </div>
               </article>
 
               <article className="module-card latest-result-card">
-                <h2>AI Evaluation</h2>
+                <h2>{tt("aiEvalTitle")}</h2>
                 <div className="result-grid quiz-result-grid">
-                  <div><span>Chapter</span><strong>{unitTest.chapter}</strong></div>
-                  <div><span>Score</span><strong className="score-text">{showEvaluation ? "8 / 10" : "- / 10"}</strong></div>
-                  <div><span>Status</span><strong>{showEvaluation ? "Completed" : "Pending"}</strong></div>
+                  <div><span>{tt("chapterLabel")}</span><strong>{isTranslating && !isEnglish ? "..." : translatedData.chapter}</strong></div>
+                  <div><span>{tt("scoreLabel")}</span><strong className="score-text">{showEvaluation ? "8 / 10" : "- / 10"}</strong></div>
+                  <div><span>{tt("statusLabel")}</span><strong>{showEvaluation ? tt("completedStatus") : tt("pendingStatus")}</strong></div>
                 </div>
 
                 {showEvaluation && (
                   <div className="quiz-score-card assessment-ai-card">
-                    <strong>AI Answer</strong>
-                    <p>{unitTest.aiAnswer}</p>
-                    <strong>Feedback</strong>
-                    <p>Your answer is correct and clear. Add points about accountability and peaceful change of government to make it stronger.</p>
+                    <strong>{tt("aiAnswerLabel")}</strong>
+                    <p>{isTranslating && !isEnglish ? "..." : translatedData.aiAnswer}</p>
+                    <strong>{tt("feedbackLabel")}</strong>
+                    <p>{tt("feedbackText")}</p>
                   </div>
                 )}
               </article>
             </div>
           )}
 
-          {activeOption === "student-analysis" && <StudentAnalysisView />}
-          {activeOption === "teacher-remark" && <TeacherRemarkView />}
+          {activeOption === "student-analysis" && <StudentAnalysisView tt={tt} />}
+          {activeOption === "teacher-remark" && <TeacherRemarkView tt={tt} />}
         </div>
       </section>
     </DashboardShell>
