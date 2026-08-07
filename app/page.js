@@ -2,20 +2,20 @@
 
 import { useState, useEffect } from "react";
 import DashboardShell from "./dashboard-shell";
+import Link from "next/link"; // Added Next.js Link
 import { useLanguage } from "../src/context/LanguageContext";
 import { translateText } from "../src/services/aiService";
 
-// Move default panels outside so we can reference them as the "English" baseline
-const defaultPanels = [
+const ENGLISH_PANELS = [
   {
     tone: "green",
     icon: "book-open",
     title: "Study A: Core Material",
     rows: [
-      ["book-open", "1) Chapters"],
-      ["document", "2) Study Material"],
-      ["question", "3) Quizzes"],
-      ["chart", "4) AI Learning Path"]
+      ["1) Chapters", "/chapters"],
+      ["2) Study Material", "/study-material"],
+      ["3) Quizzes", "/quizzes"],
+      ["4) AI Learning Path", "/ai-learning-path"]
     ]
   },
   {
@@ -23,9 +23,9 @@ const defaultPanels = [
     icon: "clipboard",
     title: "Study B: Assignment",
     rows: [
-      ["clipboard", "1) My Assignments"],
-      ["upload", "2) Submit Assignment"],
-      ["star", "3) Feedback & Marks"]
+      ["1) My Assignments", "/assignments"],
+      ["2) Submit Assignment", "/assignments"],
+      ["3) Feedback & Marks", "/assignments"]
     ]
   },
   {
@@ -33,11 +33,11 @@ const defaultPanels = [
     icon: "target",
     title: "Study C: Assessment",
     rows: [
-      ["checklist", "1) Unit Test"],
-      ["monitor", "2) Mock Test"],
-      ["star", "3) Feedback & Marks"],
-      ["chart", "4) Student Analysis"],
-      ["note", "5) Teacher Remark"]
+      ["1) Unit Test", "/assessments"],
+      ["2) Mock Test", "/assessments"],
+      ["3) Feedback & Marks", "/assessments"],
+      ["4) Student Analysis", "/assessments"],
+      ["5) Teacher Remark", "/assessments"]
     ]
   }
 ];
@@ -73,92 +73,80 @@ function PanelIcon({ name }) {
   );
 }
 
-function StudyPanel({ panel, open, onToggle }) {
-  // Use English title for link logic since translated titles will change
-  const isCoreMaterial = panel.icon === "book-open"; 
-
-  return (
-    <article className={`study-panel ${panel.tone} ${open ? "" : "collapsed"}`}>
-      <button className="panel-head" type="button" aria-expanded={open} onClick={onToggle}>
-        <PanelIcon name={panel.icon} />
-        <span className="panel-title">{panel.title}</span>
-        <span className="chevron" aria-hidden="true" />
-      </button>
-      <div className="accent-line" />
-      <div className="panel-body">
-        {panel.rows.map(([icon, label], rowIndex) => {
-          // Keep routing intact regardless of translation
-          const rowHref = isCoreMaterial ? "#" : panel.tone === "orange" ? "/assignments" : panel.tone === "purple" ? "/assessments" : "#";
-
-          return (
-            <a className="study-row" href={rowHref} key={rowIndex}>
-              <span>{label}</span>
-            </a>
-          );
-        })}
-      </div>
-    </article>
-  );
-}
-
 export default function DashboardPage() {
   const [openPanel, setOpenPanel] = useState(null);
-  const [panels, setPanels] = useState(defaultPanels);
-  
-  // Bring in the language state from Context
   const { selectedLanguage } = useLanguage();
 
-  // AI Translation Logic
+  const [panels, setPanels] = useState(ENGLISH_PANELS);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const isEnglish = !selectedLanguage || selectedLanguage === "English" || selectedLanguage === "en";
+
   useEffect(() => {
-    // Revert to default English if selected
-    if (selectedLanguage === 'en') {
-      setPanels(defaultPanels);
+    if (isEnglish) {
+      setPanels(ENGLISH_PANELS);
+      setIsTranslating(false);
       return;
     }
 
     const fetchTranslations = async () => {
-      // Create a fresh copy of the default panels to translate
-      const newPanels = JSON.parse(JSON.stringify(defaultPanels));
+      setIsTranslating(true);
+      try {
+        const stringsToTranslate = [];
+        ENGLISH_PANELS.forEach(panel => {
+          stringsToTranslate.push(panel.title);
+          panel.rows.forEach(row => stringsToTranslate.push(row[0]));
+        });
 
-      for (let i = 0; i < newPanels.length; i++) {
-        try {
-          const titleResponse = await translateText(newPanels[i].title, selectedLanguage);
-          
-          // Debugging log to verify the backend response
-          console.log(`Translation for ${newPanels[i].title}:`, titleResponse);
+        const results = await Promise.all(
+          stringsToTranslate.map(text => translateText(text, selectedLanguage))
+        );
 
-          // Check for standard JSON response structures
-          if (titleResponse) {
-             newPanels[i].title = titleResponse.translated_text || titleResponse.translation || titleResponse.text || titleResponse;
-          }
+        let resultIndex = 0;
+        const translatedPanels = ENGLISH_PANELS.map(panel => {
+          const titleRes = results[resultIndex++];
+          const newTitle = titleRes?.translated_text || titleRes?.text || titleRes?.data || panel.title;
 
-          for (let j = 0; j < newPanels[i].rows.length; j++) {
-            const rowResponse = await translateText(newPanels[i].rows[j][1], selectedLanguage);
-            if (rowResponse) {
-              newPanels[i].rows[j][1] = rowResponse.translated_text || rowResponse.translation || rowResponse.text || rowResponse;
-            }
-          }
-        } catch (error) {
-          console.error("Translation error on panel item:", error);
-        }
+          const newRows = panel.rows.map(row => {
+            const rowRes = results[resultIndex++];
+            const newLabel = rowRes?.translated_text || rowRes?.text || rowRes?.data || row[0];
+            return [newLabel, row[1]];
+          });
+
+          return { ...panel, title: newTitle, rows: newRows };
+        });
+
+        setPanels(translatedPanels);
+      } catch (error) {
+        console.error("Home Tab translation failed:", error);
+        setPanels(ENGLISH_PANELS);
+      } finally {
+        setIsTranslating(false);
       }
-      // Update state with translated panels
-      setPanels(newPanels);
     };
 
     fetchTranslations();
-  }, [selectedLanguage]);
+  }, [selectedLanguage, isEnglish]);
 
   return (
     <DashboardShell>
       <section className="content-grid" aria-label="Study modules">
         {panels.map((panel, index) => (
-          <StudyPanel
-            panel={panel}
-            open={openPanel === index}
-            onToggle={() => setOpenPanel((current) => (current === index ? null : index))}
-            key={index} // Using index as key prevents React errors when titles get translated
-          />
+          <article className={`study-panel ${panel.tone} ${openPanel === index ? "" : "collapsed"}`} key={index}>
+            <button className="panel-head" type="button" aria-expanded={openPanel === index} onClick={() => setOpenPanel((current) => (current === index ? null : index))}>
+              <PanelIcon name={panel.icon} />
+              <span className="panel-title">{isTranslating && !isEnglish ? "..." : panel.title}</span>
+              <span className="chevron" aria-hidden="true" />
+            </button>
+            <div className="accent-line" />
+            <div className="panel-body">
+              {panel.rows.map(([label, href], rowIndex) => (
+                <Link className="study-row" href={href} key={rowIndex}>
+                  <span>{isTranslating && !isEnglish ? "..." : label}</span>
+                </Link>
+              ))}
+            </div>
+          </article>
         ))}
       </section>
     </DashboardShell>
