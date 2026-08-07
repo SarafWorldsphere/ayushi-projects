@@ -21,7 +21,7 @@ import { useLanguage } from '../context/LanguageContext';
 // ================= API SETUP =================
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
-  timeout: 10000, 
+  timeout: 10000,
 });
 
 // ================= MAIN PAGE =================
@@ -54,7 +54,7 @@ export default function HomePage() {
   const [loaded, setLoaded] = useState({
     students: false,
     teachers: false,
-    progress: false,
+    performance: false, // CHANGED from progress to performance
     notifications: false,
     functions: false,
     tours: false,
@@ -106,11 +106,11 @@ export default function HomePage() {
         setLoaded((p) => ({ ...p, teachers: true }));
       }
 
-      // --> FIXED: Now catches both "progress" and any variation of "Academic Analytics"
-      if ((tab === "progress" || tab === "academicAnalytics" || tab === "academic-analytics" || tab === "Academic Analytics") && !loaded.progress) {
-        const res = await api.get("/students/progress"); 
+      // --> FIXED: Cleaned up logic to ONLY look for "performance"
+      if (tab === "performance" && !loaded.performance) {
+        const res = await api.get("/students/progress");
         setProgressData(res.data || []);
-        setLoaded((p) => ({ ...p, progress: true }));
+        setLoaded((p) => ({ ...p, performance: true }));
       }
 
       if (tab === "notifications" && !loaded.notifications) {
@@ -207,8 +207,8 @@ export default function HomePage() {
           />
         )}
 
-        {/* --> FIXED: Renders the component if "progress" OR "Academic Analytics" is clicked */}
-        {(activeTab === "progress" || activeTab === "academicAnalytics" || activeTab === "academic-analytics" || activeTab === "Academic Analytics") && (
+        {/* --> FIXED: Cleaned up the render condition to ONLY look for "performance" */}
+        {activeTab === "performance" && (
           <ProgressSection
             progressData={searchItems(progressData, [
               "full_name",

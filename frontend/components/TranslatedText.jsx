@@ -1,19 +1,14 @@
 "use client";
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
-// Wrapped in memo so it doesn't re-render unless the 'text' prop changes
+// GLOBAL MEMORY BANK: Prevents sending the same word to the API twice!
+const globalTranslationCache = {};
+
 const TranslatedText = memo(({ text }) => {
   const context = useLanguage();
-
   const language = context?.language || 'English';
   const translateText = context?.translateText || (async (t) => t);
-
-  // Store the translation function in a ref so it doesn't trigger useEffect loops
-  const translateRef = useRef(translateText);
-  useEffect(() => {
-    translateRef.current = translateText;
-  }, [translateText]);
 
   const [translated, setTranslated] = useState(text);
 
@@ -21,34 +16,44 @@ const TranslatedText = memo(({ text }) => {
     let isMounted = true;
 
     const fetchTranslation = async () => {
-      // Instantly return original text if English or empty
-      if (language === 'English' || language === 'en' || !text) {
+      // 1. Instantly return if English or empty
+      if (!text || language === 'English' || language === 'en') {
         if (isMounted) setTranslated(text);
         return;
       }
 
+      // 2. Create a unique memory key (e.g., "Hindi_Dashboard")
+      const cacheKey = `${language}_${text}`;
+
+      // 3. CHECK MEMORY FIRST: If already translated, load instantly with 0 API calls!
+      if (globalTranslationCache[cacheKey]) {
+        if (isMounted) setTranslated(globalTranslationCache[cacheKey]);
+        return;
+      }
+
+      // 4. IF NOT IN MEMORY: Call the AI API
       try {
-        // Use the ref to call the function
-        const result = await translateRef.current(text);
+        const result = await translateText(text);
+        
+        // 5. SAVE TO MEMORY FOR NEXT TIME
+        globalTranslationCache[cacheKey] = result;
+        
         if (isMounted) setTranslated(result);
       } catch (error) {
-        console.error("Translation Component Error:", error);
+        console.error("Translation API Error:", error);
         if (isMounted) setTranslated(text);
       }
     };
 
     fetchTranslation();
 
-    return () => { 
-      isMounted = false; 
+    return () => {
+      isMounted = false;
     };
-  // Removed translateText to prevent infinite loop risks
-  }, [text, language]); 
+  }, [text, language, translateText]);
 
   return <>{translated}</>;
 });
 
-// Explicit display name is good practice when using memo
 TranslatedText.displayName = 'TranslatedText';
-
 export default TranslatedText;

@@ -1,28 +1,60 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { assessStudent } from '../src/aiServices';
-import TranslatedText from './TranslatedText';
+import { useLanguage } from '../context/LanguageContext';
 
-export default function StudentsSection({
-  students = [],
-  searchText = "",
-  loaded = false,
-}) {
+export default function StudentsSection({ students = [], searchText = "", loaded = false }) {
+  const { language, translateText } = useLanguage();
+
+  // State to hold translated UI text
+  const [uiText, setUiText] = useState({
+    title: "Students Management",
+    adminNo: "Admission No",
+    name: "Name",
+    cls: "Class",
+    section: "Section",
+    parent: "Parent",
+    mobile: "Mobile",
+    email: "Email",
+    notFound: "No students found"
+  });
+
+  // AI Translation Hook
+  useEffect(() => {
+    const fetchTranslations = async () => {
+      if (language === "English" || language === "en") {
+        setUiText({
+          title: "Students Management", adminNo: "Admission No", name: "Name",
+          cls: "Class", section: "Section", parent: "Parent", mobile: "Mobile",
+          email: "Email", notFound: "No students found"
+        });
+        return;
+      }
+
+      const [t1, t2, t3, t4, t5, t6, t7, t8, t9] = await Promise.all([
+        translateText("Students Management"), translateText("Admission No"),
+        translateText("Name"), translateText("Class"), translateText("Section"),
+        translateText("Parent"), translateText("Mobile"), translateText("Email"),
+        translateText("No students found")
+      ]);
+
+      setUiText({
+        title: t1, adminNo: t2, name: t3, cls: t4,
+        section: t5, parent: t6, mobile: t7, email: t8, notFound: t9
+      });
+    };
+    fetchTranslations();
+  }, [language, translateText]);
+
   const tabs = [
     ...new Set(
       students
         .filter((student) => student.class_name && student.section_name)
-        .map(
-          (student) =>
-            `${student.class_name} - Section ${student.section_name}`
-        )
+        .map((student) => `${student.class_name} - Section ${student.section_name}`)
     ),
   ];
 
   const [activeSectionTab, setActiveSectionTab] = useState("");
-  const [assessmentReport, setAssessmentReport] = useState(null);
-  const [isAssessing, setIsAssessing] = useState(false);
 
   useEffect(() => {
     if (!activeSectionTab && tabs.length > 0) {
@@ -42,88 +74,14 @@ export default function StudentsSection({
       return matchesSearch;
     }
 
-    return (
-      `${student.class_name} - Section ${student.section_name}` ===
-      activeSectionTab
-    );
+    return `${student.class_name} - Section ${student.section_name}` === activeSectionTab;
   });
-
-  const handleStudentAssessment = async () => {
-    setIsAssessing(true);
-    setAssessmentReport(null);
-
-    // EXACT payload match for the backend schema: { student_name, metrics }
-    const studentData = {
-      student_name: activeSectionTab || "All Students in Section",
-      metrics: {
-        total_students: filteredStudents.length,
-        student_list: filteredStudents.map(s => ({
-          name: s.full_name || "Unknown",
-          admission_no: s.admission_no || "-",
-          parent: s.parent_name || "-"
-        }))
-      }
-    };
-
-    try {
-      const result = await assessStudent(studentData);
-      
-      // Handle backend returning a raw string vs an object
-      const reportText = typeof result === 'string' 
-        ? result 
-        : (result?.assessment || result?.report || JSON.stringify(result, null, 2));
-        
-      setAssessmentReport({ text: reportText });
-    } catch (error) {
-      console.error("Failed to generate student assessment:", error);
-      setAssessmentReport({ error: "Failed to generate assessment. Please check your backend connection." });
-    } finally {
-      setIsAssessing(false);
-    }
-  };
 
   return (
     <div className="page-card">
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2><TranslatedText text="Students Management" /></h2>
-
-        <button
-          onClick={handleStudentAssessment}
-          disabled={isAssessing || filteredStudents.length === 0}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#4f46e5',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: isAssessing ? 'not-allowed' : 'pointer',
-            fontWeight: 'bold'
-          }}
-        >
-          {isAssessing ? <TranslatedText text="⏳ Generating..." /> : <TranslatedText text="✨ AI Student Assessment" />}
-        </button>
+        <h2>{uiText.title}</h2>
       </div>
-
-      {assessmentReport && (
-        <div style={{ padding: '16px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', marginBottom: '20px' }}>
-          <h3 style={{ marginTop: 0, color: '#334155' }}>🤖 <TranslatedText text="AI Assessment Report" /></h3>
-
-          {assessmentReport.error ? (
-            <p style={{ color: 'red' }}>{assessmentReport.error}</p>
-          ) : (
-            <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '14px', color: '#1e293b' }}>
-              {assessmentReport.text || "No assessment generated."}
-            </div>
-          )}
-
-          <button
-            onClick={() => setAssessmentReport(null)}
-            style={{ marginTop: '12px', padding: '6px 12px', cursor: 'pointer', borderRadius: '4px', border: '1px solid #cbd5e1' }}
-          >
-            <TranslatedText text="Close Report" />
-          </button>
-        </div>
-      )}
 
       <div className="student-section-tabs">
         {tabs.map((tab) => (
@@ -140,32 +98,28 @@ export default function StudentsSection({
       <table>
         <thead>
           <tr>
-            <th><TranslatedText text="Admission No" /></th>
-            <th><TranslatedText text="Name" /></th>
-            <th><TranslatedText text="Class" /></th>
-            <th><TranslatedText text="Section" /></th>
-            <th><TranslatedText text="Parent" /></th>
-            <th><TranslatedText text="Mobile" /></th>
-            <th><TranslatedText text="Email" /></th>
+            <th>{uiText.adminNo}</th>
+            <th>{uiText.name}</th>
+            <th>{uiText.cls}</th>
+            <th>{uiText.section}</th>
+            <th>{uiText.parent}</th>
+            <th>{uiText.mobile}</th>
+            <th>{uiText.email}</th>
           </tr>
         </thead>
         <tbody>
           {!loaded ? null : filteredStudents.length === 0 ? (
             <tr>
-              <td colSpan="7"><TranslatedText text="No students found" /></td>
+              <td colSpan="7" style={{ textAlign: "center" }}>{uiText.notFound}</td>
             </tr>
           ) : (
             filteredStudents.map((student, index) => (
               <tr key={`${student.student_id}-${index}`}>
-                {/* DO NOT translate admission number, mobile, or email */}
                 <td>{student.admission_no || "-"}</td>
-
-                {/* Translate Names and Classes */}
-                <td>{student.full_name ? <TranslatedText text={student.full_name} /> : "-"}</td>
-                <td>{student.class_name ? <TranslatedText text={student.class_name} /> : "-"}</td>
-                <td>{student.section_name ? <TranslatedText text={student.section_name} /> : "-"}</td>
-                <td>{student.parent_name ? <TranslatedText text={student.parent_name} /> : "-"}</td>
-
+                <td>{student.full_name || "-"}</td>
+                <td>{student.class_name || "-"}</td>
+                <td>{student.section_name || "-"}</td>
+                <td>{student.parent_name || "-"}</td>
                 <td>{student.mobile_no || "-"}</td>
                 <td>{student.email_id || "-"}</td>
               </tr>

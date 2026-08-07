@@ -1,11 +1,10 @@
 // aiServices.js
-// Hardcoding the exact AI Backend URL to bypass broken .env variables
-const AI_BASE_URL = "http://16.112.236.67:7008";
+// Updated to use the raw IP and HTTP to prevent SSL Protocol Errors on port 7008
+const AI_BASE_URL = process.env.NEXT_PUBLIC_AI_URL || "http://16.112.236.67:7008";
 
 // 1. Language Translator
 export const translateText = async (text, targetLanguage) => {
   try {
-    // Added /hm/ back to the path!
     const response = await fetch(`${AI_BASE_URL}/api/v1/hm/translate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -90,10 +89,10 @@ export const audioTranslator = async (audioBlob, targetLanguage) => {
   }
 };
 
-// 5. Student Assessment
+// 5. Student Performance Assessment
 export const assessStudent = async (studentData) => {
   try {
-    const response = await fetch(`${AI_BASE_URL}/api/v1/hm/assess/student`, {
+    const response = await fetch(`${AI_BASE_URL}/api/v1/hm/student`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(studentData)
@@ -110,22 +109,22 @@ export const assessStudent = async (studentData) => {
   }
 };
 
-// 6. Classroom Assessment
-export const assessClassroom = async (classroomData) => {
+// 6. Teacher Performance Assessment
+export const assessTeacher = async (teacherData) => {
   try {
-    const response = await fetch(`${AI_BASE_URL}/api/v1/hm/assess/classroom`, {
+    const response = await fetch(`${AI_BASE_URL}/api/v1/hm/teacher`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(classroomData)
+      body: JSON.stringify(teacherData)
     });
 
     if (!response.ok) {
-      throw new Error(`Classroom Assessment failed with status ${response.status}`);
+      throw new Error(`Teacher Assessment failed with status ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error("assessClassroom error:", error);
+    console.error("assessTeacher error:", error);
     return { error: "Failed to generate assessment. Please check AI backend connection." };
   }
 };

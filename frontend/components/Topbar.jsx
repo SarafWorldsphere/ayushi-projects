@@ -1,38 +1,39 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Shield, Bell, Search, Mic, Volume2, Languages, Check, ChevronDown, Globe } from "lucide-react";
+import { Shield, Bell, Search, Mic, Volume2, Languages, Check, ChevronDown } from "lucide-react";
 import { useLanguage } from '../context/LanguageContext';
-import TranslatedText from './TranslatedText';
 import { audioTranslator } from '../src/aiServices';
 
 export default function Topbar({ headmaster, searchText, setSearchText, notificationCount = 0 }) {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, translateText } = useLanguage();
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isAudioTranslating, setIsAudioTranslating] = useState(false);
-  
+
+  // State to hold translated UI text
+  const [uiText, setUiText] = useState({
+    welcome: "Welcome",
+    headmaster: "Headmaster",
+    adminAccess: "Admin Access",
+    search: "Search students..."
+  });
+
   const langRef = useRef(null);
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
 
-  const languages = [
+  // PROTECTED: These exact strings will render in the dropdown without AI translation
+  const displayLanguages = [
     "English", "Hindi", "Tamil", "Telugu", "Malayalam",
     "Kannada", "Gujarati", "Punjabi", "Marathi"
   ];
 
-  // Map Dashboard languages to Browser BCP 47 Language Codes for Chrome Mic
   const langCodeMap = {
-    "English": "en-US",
-    "Hindi": "hi-IN",
-    "Tamil": "ta-IN",
-    "Telugu": "te-IN",
-    "Malayalam": "ml-IN",
-    "Kannada": "kn-IN",
-    "Gujarati": "gu-IN",
-    "Punjabi": "pa-IN",
-    "Marathi": "mr-IN"
+    "English": "en-US", "Hindi": "hi-IN", "Tamil": "ta-IN",
+    "Telugu": "te-IN", "Malayalam": "ml-IN", "Kannada": "kn-IN",
+    "Gujarati": "gu-IN", "Punjabi": "pa-IN", "Marathi": "mr-IN"
   };
 
   useEffect(() => {
@@ -45,7 +46,29 @@ export default function Topbar({ headmaster, searchText, setSearchText, notifica
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 1. SPEAKER BUTTON: Text-to-Speech (Client Synthesis)
+  // AI Translation Hook
+  useEffect(() => {
+    const fetchTranslations = async () => {
+      if (language === "English" || language === "en") {
+        setUiText({
+          welcome: "Welcome", headmaster: "Headmaster", 
+          adminAccess: "Admin Access", search: "Search students..."
+        });
+        return;
+      }
+
+      const [w, h, a, s] = await Promise.all([
+        translateText("Welcome"),
+        translateText("Headmaster"),
+        translateText("Admin Access"),
+        translateText("Search students...")
+      ]);
+
+      setUiText({ welcome: w, headmaster: h, adminAccess: a, search: s });
+    };
+    fetchTranslations();
+  }, [language, translateText]);
+
   const handleSpeakText = (textToSpeak) => {
     if (!textToSpeak || !textToSpeak.trim()) return;
     window.speechSynthesis.cancel();
@@ -54,7 +77,6 @@ export default function Topbar({ headmaster, searchText, setSearchText, notifica
     window.speechSynthesis.speak(utterance);
   };
 
-  // 2. STANDARD MIC BUTTON: Chrome Native Speech Recognition
   const handleChromeNativeMic = () => {
     if (isListening) {
       if (recognitionRef.current) recognitionRef.current.stop();
@@ -88,7 +110,6 @@ export default function Topbar({ headmaster, searchText, setSearchText, notifica
     recognition.start();
   };
 
-  // 3. GLOBE MIC BUTTON: AI Audio Translator
   const handleAudioTranslate = async () => {
     if (isAudioTranslating) {
       if (mediaRecorderRef.current) mediaRecorderRef.current.stop();
@@ -135,14 +156,14 @@ export default function Topbar({ headmaster, searchText, setSearchText, notifica
             type="text"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            placeholder="Search students..."
+            placeholder={uiText.search}
             className="search-input"
           />
 
           <div className="search-actions" style={{ display: 'flex', gap: '8px' }}>
             <button
               className="speak-btn"
-              onClick={() => handleSpeakText(searchText || "Welcome to Headmaster Dashboard")}
+              onClick={() => handleSpeakText(searchText || uiText.welcome)}
               title="Speak Text"
               type="button"
             >
@@ -152,7 +173,7 @@ export default function Topbar({ headmaster, searchText, setSearchText, notifica
             <button
               className={`mic-btn ${isListening ? "active" : ""}`}
               onClick={handleChromeNativeMic}
-              title="Chrome Search Mic (Types as you speak)"
+              title="Chrome Search Mic"
               type="button"
               style={{ color: isListening ? "red" : "inherit" }}
             >
@@ -163,7 +184,7 @@ export default function Topbar({ headmaster, searchText, setSearchText, notifica
       </div>
 
       <div className="topbar-right">
-        {/* LANGUAGE SELECTOR BAR - UNTRANSLATED BY DESIGN */}
+        {/* PROTECTED LANGUAGE SELECTOR BAR */}
         <div className="language-wrapper" ref={langRef}>
           <button
             className="language-btn"
@@ -177,7 +198,7 @@ export default function Topbar({ headmaster, searchText, setSearchText, notifica
 
           {showLangMenu && (
             <div className="language-dropdown">
-              {languages.map((lang) => (
+              {displayLanguages.map((lang) => (
                 <button
                   key={lang}
                   type="button"
@@ -203,8 +224,8 @@ export default function Topbar({ headmaster, searchText, setSearchText, notifica
         <div className="profile-card">
           <Shield size={22} />
           <div>
-            <h3><TranslatedText text="Welcome" /> {headmaster?.name || <TranslatedText text="Headmaster" />}</h3>
-            <p><TranslatedText text="Admin Access" /></p>
+            <h3>{uiText.welcome} {headmaster?.name || uiText.headmaster}</h3>
+            <p>{uiText.adminAccess}</p>
           </div>
         </div>
       </div>
