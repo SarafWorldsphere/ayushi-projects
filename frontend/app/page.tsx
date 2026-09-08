@@ -84,6 +84,13 @@ export default function Module7Dashboard() {
     }
   };
 
+  // ADDED LOGOUT HANDLER
+  const handleLogout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href = 'https://staging.jclg.swais.in/';
+  };
+
   const menuTabs = ['Dashboard', 'Students', 'Academics', 'AI Analysis', 'Progress', 'Reports'];
 
   // ===================== TAB 1: DASHBOARD =====================
@@ -395,7 +402,7 @@ export default function Module7Dashboard() {
           </p>
         </div>
 
-        <nav className="flex flex-col gap-2 px-4">
+        <nav className="flex flex-col gap-2 px-4 flex-1">
           {menuTabs.map((tab) => (
             <button
               key={tab}
@@ -414,6 +421,19 @@ export default function Module7Dashboard() {
               )}
             </button>
           ))}
+
+          {/* ADDED LOGOUT BUTTON BLOCK */}
+          <div className="mt-auto pb-6">
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center justify-start gap-3 px-5 py-3.5 rounded-lg font-medium transition-all text-red-400 hover:bg-red-500/10 hover:text-red-300 border border-transparent hover:border-red-500/20"
+            >
+              <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+              </svg>
+              Logout
+            </button>
+          </div>
         </nav>
       </aside>
 
