@@ -84,11 +84,10 @@ export default function Module7Dashboard() {
     }
   };
 
-  // ADDED LOGOUT HANDLER
+  // UPDATED SOFT-CODED LOGOUT HANDLER
   const handleLogout = () => {
-    sessionStorage.clear();
     localStorage.clear();
-    window.location.href = 'https://staging.jclg.swais.in/';
+    window.location.href = process.env.NEXT_PUBLIC_LOGIN_URL || "/";
   };
 
   const menuTabs = ['Dashboard', 'Students', 'Academics', 'AI Analysis', 'Progress', 'Reports'];
@@ -422,7 +421,7 @@ export default function Module7Dashboard() {
             </button>
           ))}
 
-          {/* ADDED LOGOUT BUTTON BLOCK */}
+          {/* LOGOUT BUTTON BLOCK */}
           <div className="mt-auto pb-6">
             <button 
               onClick={handleLogout}
