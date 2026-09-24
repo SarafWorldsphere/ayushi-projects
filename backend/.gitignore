@@ -1,0 +1,13 @@
+# venv — always .venv, never committed
+.venv/
+
+# env — NEVER commit real env files (only .env.example is committed)
+.env
+
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# misc
+.DS_Store
