@@ -1,0 +1,12 @@
+node_modules/
+.next/
+out/
+.env
+.env.local
+**/.env
+*.log
+__pycache__/
+*.py[cod]
+backend/.venv/
+backend/venv/
+*.save
