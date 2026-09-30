@@ -1,0 +1,13 @@
+# deps / build
+node_modules/
+.next/
+out/
+
+# env — NEVER commit real env files (only .env.example is committed)
+.env
+.env.local
+.env.*.local
+
+# misc
+.DS_Store
+npm-debug.log*
