@@ -1,0 +1,67 @@
+name: Deploy swais.in
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Automatically provided by GitHub!
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          envs: GITHUB_TOKEN # This passes the token securely to your EC2 server
+          script: |
+            set -e
+
+            echo ">>> Pulling latest code..."
+            cd /home/ubuntu/SWAIS-Admin-Dashboard
+            
+            # Uses the automatic token to pull without asking for a password!
+            git pull https://x-access-token:${GITHUB_TOKEN}@github.com/Ayushi-SWAIS/SWAIS-Admin-Dashboard.git main
+
+            echo ">>> Backend setup..."
+            cd /home/ubuntu/SWAIS-Admin-Dashboard/backend
+
+            if [ ! -d ".venv" ]; then
+                echo "Creating virtual environment..."
+                python3 -m venv .venv
+            fi
+
+            source .venv/bin/activate
+            pip install -r requirements.txt
+            deactivate
+
+            echo ">>> Frontend setup..."
+            cd /home/ubuntu/SWAIS-Admin-Dashboard
+
+            export NVM_DIR="$HOME/.nvm"
+            source $NVM_DIR/nvm.sh
+            nvm use 20
+
+            npm install
+            npm run build
+
+            echo ">>> Restarting apps..."
+
+            cd /home/ubuntu/SWAIS-Admin-Dashboard/backend
+            pm2 describe swais-backend > /dev/null 2>&1 \
+              && pm2 restart swais-backend \
+              || pm2 start "python3 run.py" --name swais-backend
+
+            cd /home/ubuntu/SWAIS-Admin-Dashboard
+            pm2 describe swais-frontend > /dev/null 2>&1 \
+              && pm2 restart swais-frontend \
+              || pm2 start "npm run dev -- -p 7003" --name swais-frontend
+
+            pm2 save
+
+            echo "Deploy complete!"
