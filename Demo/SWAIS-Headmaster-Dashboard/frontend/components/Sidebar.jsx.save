@@ -1,0 +1,113 @@
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  Home,
+  Users,
+  GraduationCap,
+  TrendingUp,
+  Bell,
+  CalendarDays,
+  MapPinned,
+  LogOut,
+  BookOpen,   // Added for Class Master
+  LineChart   // Added for Academic Analytics
+} from "lucide-react";
+import Image from "next/image";
+import LogoutModal from "@/components/LogoutModal";
+import TranslatedText from './TranslatedText';
+import { useLanguage } from "../src/context/LanguageContext";
+import { useState, useEffect } from "react";
+
+export default function Sidebar({ activeTab, setActiveTab }) {
+  const router = useRouter();
+
+  // ✅ ADD STATE FOR MODAL
+  const [showLogout, setShowLogout] = useState(false);
+
+  const menuItems = [
+  { id: "dashboard", label: "Dashboard", icon: Home },
+  { id: "students", label: "Students", icon: Users },
+  { id: "teachers", label: "Teachers", icon: GraduationCap },
+  { id: "progress", label: "Progress", icon: TrendingUp },
+  { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "functions", label: "Functions", icon: CalendarDays },
+  { id: "tours", label: "Tours", icon: MapPinned },
+  { id: "classMaster", label: "Class Master", icon: BookOpen },             // NEW TAB
+  { id: "academicAnalytics", label: "Academic Analytics", icon: LineChart }, // NEW TAB
+  { id: "logout", label: "Logout", icon: LogOut, danger: true },
+];
+
+  // ✅ LOGOUT LOGIC
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    sessionStorage.clear();
+
+    // clear cookie (if used)
+    document.cookie =
+      "dem_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC";
+
+    window.location.href = "https://staging.dem.swais.in";
+  };
+
+  const handleClick = (item) => {
+    if (item.id === "logout") {
+      setShowLogout(true); // ✅ open modal instead of confirm
+      return;
+    }
+
+    setActiveTab(item.id);
+  };
+
+  return (
+    <>
+      <div className="sidebar">
+        <div>
+          {/* BRAND */}
+          <div className="brand-box">
+            <div className="logo-circle">
+              <Image
+                src="/DEM Logo.jpeg"
+                alt="DEMO Logo"
+                width={80}
+                height={80}
+                className="school-logo"
+              />
+            </div>
+            
+            {/* DEMO SCHOOL remains untranslated as requested */}
+            <h2>DEMO SCHOOL</h2>
+            <p><TranslatedText text="Headmaster Dashboard" /></p>
+          </div>
+
+          {/* MENU */}
+          <div className="menu-list">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <button
+                  key={item.id}
+                  className={`menu-btn ${
+                    activeTab === item.id ? "active" : ""
+                  } ${item.danger ? "logout-style" : ""}`}
+                  onClick={() => handleClick(item)}
+                >
+                  <Icon size={18} />
+                  <TranslatedText text={item.label} />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* ✅ LOGOUT MODAL (ADD HERE - OUTSIDE SIDEBAR DIV) */}
+      <LogoutModal
+        open={showLogout}
+        onCancel={() => setShowLogout(false)}
+        onConfirm={handleLogout}
+      />
+    </>
+  );
+}
