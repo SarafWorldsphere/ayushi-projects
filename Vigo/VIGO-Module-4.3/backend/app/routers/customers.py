@@ -186,7 +186,13 @@ def test_customer_api():
 # Login
 # ============================================================
 
-@router.post("/login")
+@router.post(
+    "/login",
+    tags=["Customers"],
+    summary="Customer Login Verification",
+    description="Checks whether the customer exists by email and phone. Note: Actual OTP authentication is pending external service integration.",
+    status_code=200
+)
 def customer_login(request: CustomerLoginRequest):
     """
     Check whether the customer exists by email and phone.
