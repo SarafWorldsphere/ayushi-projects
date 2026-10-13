@@ -1,43 +1,67 @@
-from database import Base, engine, get_db
+from database import engine, get_db
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from sqlalchemy import func
+from pydantic import BaseModel
 import models
 
-Base.metadata.create_all(bind=engine)
+# FIX: Removed Base.metadata.create_all(bind=engine) to prevent unauthorized table creation
 
 app = FastAPI(title="Module 4.6 API")
 
+# Add CORS so the frontend can connect
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-@app.get("/reports-summary")
+# Define Pydantic models for the Feature Flags API
+class FeatureFlagUpdate(BaseModel):
+    is_enabled: bool
+
+# FIX Error A1: Added /api/module46 prefix to all routes
+
+@app.get("/api/module46/reports-summary")
 def get_reports_summary(db: Session = Depends(get_db)):
-    sales = db.query(models.VGFSalesSummary).first()
-    commission = db.query(models.VGFCommissionSummary).first()
+    # FIX Error A2: Calculate metrics from real vgf_orders instead of returning fallback constants
+    total_revenue = db.query(func.sum(models.VGFOrder.total_amount)).filter(models.VGFOrder.status == 'DELIVERED').scalar() or 0
+    orders_count = db.query(models.VGFOrder).filter(models.VGFOrder.status == 'DELIVERED').count()
+    
+    avg_order_value = 0
+    if orders_count > 0:
+        avg_order_value = total_revenue / orders_count
 
+    # Returning 0 temporarily for commission logic until those tables are migrated
     return {
-        "total_revenue": sales.total_revenue if sales else 482600,
-        "orders_this_month": sales.orders_count if sales else 12340,
-        "avg_order_value": sales.avg_order_value if sales else 390,
-        "hotel_commission_earned": (
-            commission.hotel_commission if commission else 72400
-        ),
-        "rider_payouts": commission.rider_payouts if commission else 186200,
-        "tds_deducted": commission.tds_deducted if commission else 9300,
+        "total_revenue": total_revenue,
+        "orders_this_month": orders_count,
+        "avg_order_value": avg_order_value,
+        "hotel_commission_earned": 0,
+        "rider_payouts": 0,
+        "tds_deducted": 0,
     }
 
-
-@app.get("/chart-data")
+@app.get("/api/module46/chart-data")
 def get_chart_data(db: Session = Depends(get_db)):
-    sales_list = db.query(models.VGFSalesSummary).all()
-    if not sales_list:
-        return [
-            {"month": "Jan", "revenue": 320000},
-            {"month": "Feb", "revenue": 380000},
-            {"month": "Mar", "revenue": 350000},
-            {"month": "Apr", "revenue": 410000},
-            {"month": "May", "revenue": 482600},
-        ]
+    # FIX Error A2: Replaced the fake hardcoded month/revenue list. 
+    # Returning an empty list for now until date-based SQL grouping is fully implemented for the chart.
+    return []
 
-    return [
-        {"month": item.report_date, "revenue": item.total_revenue}
-        for item in sales_list
-    ]
+# FIX Error A4: New endpoints to Load and Save Feature Flags
+@app.get("/api/module46/feature-flags")
+def get_feature_flags(db: Session = Depends(get_db)):
+    flags = db.query(models.VGFFeatureFlagsConfig).all()
+    return [{"id": f.id, "feature_name": f.feature_name, "is_enabled": f.is_enabled, "district": f.district} for f in flags]
+
+@app.put("/api/module46/feature-flags/{flag_id}")
+def update_feature_flag(flag_id: int, flag_data: FeatureFlagUpdate, db: Session = Depends(get_db)):
+    flag = db.query(models.VGFFeatureFlagsConfig).filter(models.VGFFeatureFlagsConfig.id == flag_id).first()
+    if flag:
+        flag.is_enabled = flag_data.is_enabled
+        db.commit()
+        return {"success": True}
+    return {"error": "Flag not found"}, 404
