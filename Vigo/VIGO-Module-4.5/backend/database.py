@@ -9,6 +9,10 @@ load_dotenv()
 # Fetch the database URL from the environment
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# Safety check: fail fast if DATABASE_URL is missing
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is missing. Please set it in the .env file.")
+
 # Create the engine with explicit connection pooling limits
 engine = create_engine(
     DATABASE_URL,
