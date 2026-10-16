@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+// Adjust the path if your lib folder is located differently (e.g., "../../lib/api" or "@/lib/api")
+import { apiFetch } from "../lib/api"; 
 
 export default function CheckoutPage() {
   const [customerId, setCustomerId] = useState("");
@@ -19,6 +21,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Note: customerId is kept for UI display, but backend uses the JWT token for auth
     const savedCustomerId = localStorage.getItem("customer_id");
     const savedRestaurantId = localStorage.getItem("customer_restaurant_id");
 
@@ -42,10 +45,7 @@ export default function CheckoutPage() {
 
             if (!savedRestaurantId) {
               setRestaurantId(idFromKey);
-              localStorage.setItem(
-                "customer_restaurant_id",
-                idFromKey
-              );
+              localStorage.setItem("customer_restaurant_id", idFromKey);
             }
           }
         } catch (error) {
@@ -72,11 +72,6 @@ export default function CheckoutPage() {
   const placeOrder = async () => {
     setMessage("");
 
-    if (!customerId) {
-      setMessage("Customer ID is required.");
-      return;
-    }
-
     if (!restaurantId) {
       setMessage("Restaurant ID is required.");
       return;
@@ -95,81 +90,19 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      // Step 1: Checkout validation
-      const checkoutResponse = await fetch(
-        "http://127.0.0.1:8000/customers/checkout",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customer_id: Number(customerId),
-            restaurant_id: Number(restaurantId),
-            address_id: Number(addressId),
-            offer_code: offerCode || null,
-          }),
-        }
-      );
-
-      const checkoutData = await checkoutResponse.json();
-
-      if (!checkoutResponse.ok) {
-        setMessage(
-          checkoutData.detail || "Checkout validation failed."
-        );
-        setLoading(false);
-        return;
-      }
-
-      // Step 2: Create order
-      const orderResponse = await fetch(
-        "http://127.0.0.1:8000/orders",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customer_id: Number(customerId),
-
-            // Current Orders API expects hotel_id.
-            // Restaurant ID represents the selected hotel/restaurant.
-            hotel_id: Number(restaurantId),
-
-            address_id: Number(addressId),
-
-            items: cartItems.map((item) => ({
-              menu_id: Number(item.menu_id),
-              quantity: Number(item.quantity),
-              unit_price: Number(item.unit_price),
-              line_total:
-                Number(item.unit_price) * Number(item.quantity),
-            })),
-
-            subtotal: Number(subtotal.toFixed(2)),
-            gst_amount: Number(Number(gstAmount || 0).toFixed(2)),
-            delivery_charge: Number(
-              Number(deliveryCharge || 0).toFixed(2)
-            ),
-            total_amount: Number(finalAmount.toFixed(2)),
-          }),
-        }
-      );
-
-      const orderData = await orderResponse.json();
-
-      if (!orderResponse.ok) {
-        setMessage(orderData.detail || "Order creation failed.");
-        setLoading(false);
-        return;
-      }
+      // The backend /customers/checkout endpoint now creates the order and items in the database automatically. 
+      // We no longer need a separate call to the /orders endpoint.
+      const checkoutData = await apiFetch("/customers/checkout", {
+        method: "POST",
+        body: JSON.stringify({
+          restaurant_id: String(restaurantId),
+          address_id: Number(addressId),
+          offer_code: offerCode || null,
+        }),
+      });
 
       // Save order response for the confirmation page.
-      localStorage.setItem(
-        "last_order_response",
-        JSON.stringify(orderData)
-      );
+      localStorage.setItem("last_order_response", JSON.stringify(checkoutData));
 
       // Clear cart after successful order creation.
       Object.keys(localStorage).forEach((key) => {
@@ -180,20 +113,18 @@ export default function CheckoutPage() {
 
       localStorage.removeItem("customer_restaurant_id");
 
-      setMessage(
-        orderData.message || "Order creation API structure is ready."
-      );
-
+      setMessage(checkoutData.message || "Order placed successfully!");
       setLoading(false);
 
       // Go to confirmation page after a short delay.
       setTimeout(() => {
         window.location.href = "/order-confirmation";
       }, 1000);
+
     } catch (error) {
       console.error(error);
       setMessage(
-        "Unable to connect to the backend. Please check whether FastAPI is running."
+        error.message || "Checkout failed. Please check your network or token."
       );
       setLoading(false);
     }
@@ -210,9 +141,7 @@ export default function CheckoutPage() {
     >
       <h1>Checkout</h1>
 
-      <p>
-        Review your order details before placing the order.
-      </p>
+      <p>Review your order details before placing the order.</p>
 
       <hr />
 
@@ -221,13 +150,11 @@ export default function CheckoutPage() {
         <h2>Customer Details</h2>
 
         <p>
-          <strong>Customer ID:</strong>{" "}
-          {customerId || "Not available"}
+          <strong>Customer ID:</strong> {customerId || "Managed by Session Token"}
         </p>
 
         <p>
-          <strong>Restaurant ID:</strong>{" "}
-          {restaurantId || "Not available"}
+          <strong>Restaurant ID:</strong> {restaurantId || "Not available"}
         </p>
       </section>
 
@@ -254,8 +181,8 @@ export default function CheckoutPage() {
         </label>
 
         <p style={{ fontSize: "14px", color: "#666" }}>
-          Address details will come from the Customer Address
-          database once DB integration is enabled.
+          Address details will come from the Customer Address database once DB
+          integration is enabled.
         </p>
       </section>
 
@@ -278,25 +205,17 @@ export default function CheckoutPage() {
                 }}
               >
                 <p>
-                  <strong>
-                    {item.name || `Menu Item ${item.menu_id}`}
-                  </strong>
+                  <strong>{item.name || `Menu Item ${item.menu_id}`}</strong>
                 </p>
 
-                <p>
-                  Quantity: {item.quantity}
-                </p>
+                <p>Quantity: {item.quantity}</p>
 
-                <p>
-                  Unit Price: ₹
-                  {Number(item.unit_price || 0).toFixed(2)}
-                </p>
+                <p>Unit Price: ₹{Number(item.unit_price || 0).toFixed(2)}</p>
 
                 <p>
                   Item Total: ₹
                   {(
-                    Number(item.unit_price || 0) *
-                    Number(item.quantity || 0)
+                    Number(item.unit_price || 0) * Number(item.quantity || 0)
                   ).toFixed(2)}
                 </p>
               </div>
@@ -367,9 +286,9 @@ export default function CheckoutPage() {
         </label>
 
         <p style={{ fontSize: "13px", color: "#666" }}>
-          These values are temporary for local testing. Final GST,
-          delivery charges and discounts must come from approved
-          business rules/configuration.
+          These values are temporary for local testing. Final GST, delivery
+          charges and discounts must come from approved business
+          rules/configuration.
         </p>
       </section>
 
@@ -396,23 +315,17 @@ export default function CheckoutPage() {
 
         <p>
           Delivery Charge:
-          <strong>
-            ₹{Number(deliveryCharge || 0).toFixed(2)}
-          </strong>
+          <strong> ₹{Number(deliveryCharge || 0).toFixed(2)}</strong>
         </p>
 
         <p>
           Discount:
-          <strong>
-            - ₹{Number(discount || 0).toFixed(2)}
-          </strong>
+          <strong> - ₹{Number(discount || 0).toFixed(2)}</strong>
         </p>
 
         <hr />
 
-        <h2>
-          Final Payable: ₹{finalAmount.toFixed(2)}
-        </h2>
+        <h2>Final Payable: ₹{finalAmount.toFixed(2)}</h2>
       </section>
 
       {/* Message */}
