@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { apiFetch } from "../../lib/api"; // Secure API wrapper
+import { useRouter } from 'next/navigation'; // Added useRouter for smooth client-side routing
 
 export default function CustomerDashboard() {
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -9,6 +10,8 @@ export default function CustomerDashboard() {
   const [location, setLocation] = useState("Adajan, Surat");
   const [wantsCutlery, setWantsCutlery] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const router = useRouter(); // Initialized the Next.js router
 
   // REAL API STATE
   const [realRestaurants, setRealRestaurants] = useState([]);
@@ -52,9 +55,10 @@ export default function CustomerDashboard() {
     }
   };
 
+  // Updated logout function using Next.js router
   const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = process.env.NEXT_PUBLIC_LOGIN_URL || "/";
+    localStorage.clear(); // Clears access_token and user data
+    router.push('/login'); // Smoothly redirects to your new login page
   };
 
   const handleNavClick = (tabName) => {
@@ -361,12 +365,14 @@ export default function CustomerDashboard() {
                         <span className={`text-[10px] px-2 py-1 rounded-md font-bold uppercase whitespace-nowrap ${(order.order_status || order.status) === 'Delivered' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{order.order_status || order.status}</span>
                       </div>
                       <p className="text-sm text-gray-600 mb-2 font-medium line-clamp-1">{order.items || "Order items"}</p>
-                      <p className="text-xs text-gray-400">Order #{order.order_id || order.id} • {order.created_at || order.date}</p>
+                      <p className="text-xs text-gray-400">Order #{order.order_id || order.id}
+{order.created_at || order.date}</p>
                     </div>
 
                     <div className="sm:hidden text-sm text-gray-600 font-medium">
                        <p className="line-clamp-1">{order.items || "Order items"}</p>
-                       <p className="text-xs text-gray-400 mt-1">Order #{order.order_id || order.id} • {order.created_at || order.date}</p>
+                       <p className="text-xs text-gray-400 mt-1">Order #{order.order_id || order.id}
+{order.created_at || order.date}</p>
                     </div>
 
                     <div className="flex justify-between items-center sm:flex-col sm:items-end sm:pl-4 sm:border-l border-gray-100 mt-2 sm:mt-0 w-full sm:w-auto">

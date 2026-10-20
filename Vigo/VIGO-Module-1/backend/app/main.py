@@ -15,6 +15,7 @@ from app.routers import (
     tracking,
     offers,
     feedback,
+    auth,  # <-- Added auth module
 )
 
 app = FastAPI(title=settings.app_name)
@@ -36,6 +37,7 @@ def health():
 
 # Routes are registered WITHOUT the role prefix (/students, not /api/<role>/students).
 # Nginx strips /api/<role>/ before forwarding — backends stay proxy-agnostic.
+app.include_router(auth.router)  # <-- Registers /auth/request-otp and /auth/verify-otp
 app.include_router(example.router)
 app.include_router(customers.router)
 app.include_router(payments.router)

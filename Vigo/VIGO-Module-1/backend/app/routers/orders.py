@@ -6,7 +6,7 @@ from sqlalchemy import text
 
 from app.config import settings
 from app.db.pool import build_engine
-from app.auth import get_current_customer
+from app.routers.auth import get_current_customer
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
