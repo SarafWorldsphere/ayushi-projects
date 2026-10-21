@@ -18,8 +18,9 @@ export default function Sidebar() {
 
   const handleLogout = (e: React.MouseEvent) => {
     e.preventDefault();
-    // Clear the authentication token securely
+    // Clear ALL authentication tokens securely
     localStorage.removeItem("token");
+    localStorage.removeItem("rider_access_token");
     router.push("/login");
   };
 

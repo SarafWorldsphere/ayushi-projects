@@ -1,10 +1,11 @@
 // app/page.tsx
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 // Define the shape of the data returned by our backend
 interface Order {
-  id: string; // FIXED: Changed 'str' to 'string'
+  id: string;
   order_number: string;
   restaurant_id: string;
   customer_name: string;
@@ -14,23 +15,44 @@ interface Order {
 }
 
 export default function RiderDashboard() {
+  const router = useRouter();
   const [activeOrders, setActiveOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   // Fetch real data from the backend when the component mounts
   useEffect(() => {
+    // 1. Check for the authentication token
+    const token = localStorage.getItem("rider_access_token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    
+    setIsAuthChecking(false);
+
     const fetchOrders = async () => {
       try {
-        const response = await fetch("http://localhost:8000/orders/active", {
+        // 2. Soft-code the API URL
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+        
+        // 3. Inject the real JWT token into the headers
+        const response = await fetch(`${API_BASE_URL}/orders/active`, {
           method: "GET",
           headers: {
-            "Authorization": "Bearer test_token",
+            "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
           }
         });
 
         if (!response.ok) {
+          if (response.status === 401) {
+            // Token expired or invalid
+            localStorage.removeItem("rider_access_token");
+            router.push("/login");
+            return;
+          }
           throw new Error("Failed to fetch active orders");
         }
 
@@ -44,7 +66,12 @@ export default function RiderDashboard() {
     };
 
     fetchOrders();
-  }, []);
+  }, [router]);
+
+  // Show a blank loading state while verifying the token
+  if (isAuthChecking) {
+    return <div className="flex h-screen items-center justify-center bg-[#FFFDF8] text-[#1F2937]">Loading VIGO Feast...</div>;
+  }
 
   // Compute dynamic trip progress based on the current order's status
   const currentOrder = activeOrders.length > 0 ? activeOrders[0] : null;
@@ -73,7 +100,6 @@ export default function RiderDashboard() {
         </div>
         <div className="flex items-center gap-3 bg-white border border-gray-200 px-4 py-2 rounded-xl shadow-sm">
           <div className="w-2 h-2 bg-[#16A34A] rounded-full animate-pulse"></div>
-          {/* Removed mockData dependency; hardcoded for now or fetch from a profile API */}
           <span className="text-[13px] font-bold text-[#1F2937]">Status: Available</span>
         </div>
       </header>
