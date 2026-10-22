@@ -8,12 +8,13 @@ export default function DeliveryPartnerLogin() {
   
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
+  const [language, setLanguage] = useState('en'); // New language state
   const [step, setStep] = useState('phone'); // Tracks whether to show Phone or OTP input
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Soft-coded API URL targeting the Rider backend
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  // Soft-coded API URL targeting the Rider backend on the new port
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:21105';
 
   const handleSendOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -30,7 +31,7 @@ export default function DeliveryPartnerLogin() {
       const response = await fetch(`${API_BASE_URL}/auth/request-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, language }), // Passing language to backend
       });
 
       if (!response.ok) {
@@ -88,15 +89,15 @@ export default function DeliveryPartnerLogin() {
         <div className="w-full md:w-1/2 relative bg-[#F97316] p-8 flex flex-col justify-center items-center text-center overflow-hidden min-h-[400px]">
           <div className="relative z-10">
             <div className="w-20 h-20 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-md overflow-hidden bg-white relative">
-  <Image 
-    src="/logo.jpeg" 
-    alt="Vigo Feast Logo" 
-    fill 
-    style={{ objectFit: 'contain' }} 
-    className="p-1"
-    priority
-  />
-</div>
+              <Image 
+                src="/logo.jpeg" 
+                alt="Vigo Feast Logo" 
+                fill 
+                style={{ objectFit: 'contain' }} 
+                className="p-1"
+                priority
+              />
+            </div>
             <h1 className="text-4xl font-black tracking-tight text-white mb-2">
               VIGO<span className="text-[#1F2937]">FEAST</span>
             </h1>
@@ -121,6 +122,26 @@ export default function DeliveryPartnerLogin() {
           {/* Dynamic Form: Toggles between Phone input and OTP input */}
           {step === 'phone' ? (
             <form className="space-y-5" onSubmit={handleSendOtp}>
+              
+              {/* Language Selector */}
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">OTP Language</label>
+                <div className="flex gap-3">
+                  <label className={`flex-1 text-center py-2 px-3 border rounded-lg cursor-pointer transition-colors text-sm font-bold ${language === 'en' ? 'bg-[#0F766E] text-white border-[#0F766E]' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                    <input type="radio" name="lang" value="en" checked={language === 'en'} onChange={() => setLanguage('en')} className="hidden" />
+                    English
+                  </label>
+                  <label className={`flex-1 text-center py-2 px-3 border rounded-lg cursor-pointer transition-colors text-sm font-bold ${language === 'hi' ? 'bg-[#0F766E] text-white border-[#0F766E]' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                    <input type="radio" name="lang" value="hi" checked={language === 'hi'} onChange={() => setLanguage('hi')} className="hidden" />
+                    Hindi
+                  </label>
+                  <label className={`flex-1 text-center py-2 px-3 border rounded-lg cursor-pointer transition-colors text-sm font-bold ${language === 'te' ? 'bg-[#0F766E] text-white border-[#0F766E]' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'}`}>
+                    <input type="radio" name="lang" value="te" checked={language === 'te'} onChange={() => setLanguage('te')} className="hidden" />
+                    Telugu
+                  </label>
+                </div>
+              </div>
+
               <div>
                 <input 
                   type="tel" 

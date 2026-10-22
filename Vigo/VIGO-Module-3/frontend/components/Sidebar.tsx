@@ -27,7 +27,7 @@ export default function Sidebar() {
   return (
     <aside className="w-[280px] bg-[#FFFDF8] text-[#1F2937] flex flex-col h-screen p-4 border-r border-gray-200 shadow-md z-20">
       
-      {/* VIGO Branding with Logo Image */}
+      {/* VIGO Branding with Logo Image & Staging URL */}
       <div className="flex items-center gap-3 mb-6 px-2 mt-2 shrink-0">
         <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm overflow-hidden bg-white">
            <Image 
@@ -43,6 +43,14 @@ export default function Sidebar() {
             VIGO<span className="text-[#F97316]">FEAST</span>
           </h1>
           <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Delivery Partner App</p>
+          <a 
+            href="https://rider.vigofeast.swais.in" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-[9px] text-[#0F766E] hover:underline font-bold tracking-wider mt-0.5 block"
+          >
+            rider.vigofeast.swais.in
+          </a>
         </div>
       </div>
 

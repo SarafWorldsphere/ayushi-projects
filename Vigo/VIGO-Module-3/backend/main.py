@@ -26,10 +26,16 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     return token
 
 
-# --- CORS Configuration (Fix for Error R5) ---
+# --- CORS Configuration (Updated for EC2, Network IP, and Staging URLs) ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3003"], 
+    allow_origins=[
+        "http://localhost:3000", 
+        "http://localhost:3003", 
+        "http://localhost:21106",           # New local frontend port (Task 2)
+        "http://10.86.188.133:21106",       # Local network IP frontend
+        "https://rider.vigofeast.swais.in"  # New staging URL (Task 3)
+    ], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
