@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [step, setStep] = useState('phone');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [language, setLanguage] = useState('en'); 
   const router = useRouter();
 
   const handleSendOtp = async (e) => {
@@ -18,10 +19,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8001/auth/request-otp', {
+      // Pointing to the new Module 1 backend port 21103
+      const response = await fetch('http://localhost:21103/auth/request-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, language }), 
       });
 
       if (!response.ok) throw new Error('Failed to send OTP. Please check the number.');
@@ -39,7 +41,8 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8001/auth/verify-otp', {
+      // Pointing to the new Module 1 backend port 21103
+      const response = await fetch('http://localhost:21103/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, otp }),
@@ -48,10 +51,8 @@ export default function LoginPage() {
       const data = await response.json();
       if (!response.ok) throw new Error('Invalid or expired OTP');
 
-      // Save the JWT token
       localStorage.setItem('access_token', data.access_token);
       
-      // Redirect to the dashboard
       router.push('/dashboard');
     } catch (err) {
       setErrorMsg(err.message);
@@ -61,20 +62,16 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
-    // You can integrate Firebase, NextAuth, or your backend Google OAuth here later
     alert("Google Login Integration Pending!");
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#fafafa] p-4 font-sans">
-      {/* Main Container - Split Layout */}
       <div className="flex flex-col md:flex-row w-full max-w-[850px] bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-hidden min-h-[500px]">
         
-        {/* Left Side - Orange Branding Panel */}
+        {/* Left Side */}
         <div className="w-full md:w-5/12 bg-[#f97316] p-8 flex flex-col items-center justify-center text-center text-white relative">
-          {/* Logo Container */}
           <div className="w-20 h-20 bg-white rounded-2xl p-1 mb-6 shadow-md relative overflow-hidden">
-             {/* Using the logo.jpeg you already have in your public folder */}
              <Image src="/logo.jpeg" alt="Vigo Feast Logo" fill style={{ objectFit: 'contain' }} />
           </div>
           
@@ -83,7 +80,7 @@ export default function LoginPage() {
           <p className="text-xl font-extrabold tracking-wide">Earn More</p>
         </div>
 
-        {/* Right Side - Form Panel */}
+        {/* Right Side */}
         <div className="w-full md:w-7/12 p-8 md:p-12 flex flex-col justify-center bg-white">
           <h2 className="text-[22px] font-bold text-gray-900 mb-1">Customer Login</h2>
           <p className="text-[11px] font-bold text-[#0f766e] tracking-widest uppercase mb-8">Customer Module</p>
@@ -93,6 +90,35 @@ export default function LoginPage() {
           {/* OTP Flow Forms */}
           {step === 'phone' ? (
             <form onSubmit={handleSendOtp} className="space-y-4">
+              
+              {/* OTP Language Selector */}
+              <div className="mb-4">
+                <label className="text-xs font-semibold text-gray-500 uppercase">OTP Language</label>
+                <div className="flex gap-2 mt-2">
+                  <button 
+                    type="button"
+                    onClick={() => setLanguage("en")}
+                    className={`flex-1 py-2 text-sm rounded-md border transition-colors ${language === "en" ? "bg-[#0f766e] text-white border-[#0f766e]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}
+                  >
+                    English
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setLanguage("hi")}
+                    className={`flex-1 py-2 text-sm rounded-md border transition-colors ${language === "hi" ? "bg-[#0f766e] text-white border-[#0f766e]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}
+                  >
+                    Hindi
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setLanguage("te")}
+                    className={`flex-1 py-2 text-sm rounded-md border transition-colors ${language === "te" ? "bg-[#0f766e] text-white border-[#0f766e]" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"}`}
+                  >
+                    Telugu
+                  </button>
+                </div>
+              </div>
+
               <div>
                 <input
                   type="text"
@@ -104,7 +130,6 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Extra UI to match reference image exactly */}
               <div className="flex items-center justify-between text-xs text-gray-500 pt-2 pb-2">
                  <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" className="rounded border-gray-300 text-orange-500 focus:ring-orange-500" />
